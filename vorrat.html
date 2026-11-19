@@ -1,0 +1,376 @@
+<title>Unser Vorrat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Layout: eine schmale App-Spalte – Kopf mit Aktions-Hinweis, drei Reiter (Liste · Vorrat · Aktionen), Zeilen statt Karten */
+:root{
+  --bg:#f3f5f2; --surface:#ffffff; --ink:#18221c; --muted:#5d6b62; --line:#dde3dc;
+  --accent:#1f6b47; --accent-ink:#ffffff; --tag:#ffd83d; --tag-ink:#1b1a10;
+  --warn:#b8560f; --warn-bg:#fbeadb; --low:#8a6a00; --low-bg:#fbf1cc; --ok:#2f7a4f; --ok-bg:#e0f0e5;
+  --billa:#c8102e; --hofer:#1d4f9c; --spar:#0f7b3e; --lidl:#d9a400;
+  --f-display:"Familjen Grotesk","Inter",system-ui,sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#111612; --surface:#19201b; --ink:#e7ece8; --muted:#9aa89f; --line:#2b352e;
+  --accent:#5fc28f; --accent-ink:#0d1a12; --tag:#f2c94c; --tag-ink:#1b1a10;
+  --warn:#f0a067; --warn-bg:#3a2516; --low:#e6c65a; --low-bg:#352d12; --ok:#7fd3a2; --ok-bg:#16301f;
+  --billa:#ff6b7f; --hofer:#7fa8ef; --spar:#5cc98a; --lidl:#f2c94c; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#111612; --surface:#19201b; --ink:#e7ece8; --muted:#9aa89f; --line:#2b352e;
+  --accent:#5fc28f; --accent-ink:#0d1a12; --tag:#f2c94c; --tag-ink:#1b1a10;
+  --warn:#f0a067; --warn-bg:#3a2516; --low:#e6c65a; --low-bg:#352d12; --ok:#7fd3a2; --ok-bg:#16301f;
+  --billa:#ff6b7f; --hofer:#7fa8ef; --spar:#5cc98a; --lidl:#f2c94c; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:640px;margin:0 auto;padding-block:20px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+h1{font-family:var(--f-display);font-weight:700;font-size:1.9rem;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);font-size:.85rem}
+.sync{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.live{background:var(--ok)}
+.alert{background:var(--tag);color:var(--tag-ink);border-radius:10px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start;font-weight:500}
+.alert b{font-weight:700}
+.alert button{margin-left:auto;background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:4px 10px;font:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap}
+nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;gap:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+nav button{border:0;background:none;color:var(--muted);font:inherit;font-weight:600;padding:9px 6px;border-radius:7px;cursor:pointer;display:flex;justify-content:center;gap:6px;align-items:center}
+nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.count{font-size:.75rem;font-variant-numeric:tabular-nums;opacity:.85}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.panel{display:flex;flex-direction:column;gap:18px}
+.group h2{font-family:var(--f-display);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px;font-weight:700;display:flex;justify-content:space-between}
+.rows{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);min-height:52px}
+.row:first-child{border-top:0}
+.row .main{flex:1;min-width:0}
+.name{font-weight:600;overflow-wrap:anywhere}
+.meta{font-size:.78rem;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:2px}
+.check{width:26px;height:26px;border-radius:7px;border:2px solid var(--line);background:none;cursor:pointer;flex:none;display:grid;place-items:center;color:var(--accent)}
+.check:hover{border-color:var(--accent)}
+.pill{font-size:.72rem;font-weight:600;padding:3px 8px;border-radius:99px;border:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+.st-da{background:var(--ok-bg);color:var(--ok)}
+.st-knapp{background:var(--low-bg);color:var(--low)}
+.st-leer{background:var(--warn-bg);color:var(--warn)}
+.kind{font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted)}
+.kind.must{color:var(--accent)}
+.price{background:var(--tag);color:var(--tag-ink);font-weight:700;font-size:.74rem;padding:2px 7px;border-radius:4px;font-variant-numeric:tabular-nums;display:inline-flex;gap:5px;align-items:center}
+.store{font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 6px;border-radius:4px;border:1.5px solid currentColor;line-height:1.2}
+.s-billa{color:var(--billa)}.s-hofer{color:var(--hofer)}.s-spar{color:var(--spar)}.s-lidl{color:var(--lidl)}
+.icon-btn{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:1.1rem;padding:4px 6px;border-radius:6px}
+.icon-btn:hover{color:var(--ink);background:var(--bg)}
+form.add{display:grid;grid-template-columns:1fr auto;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px}
+form.add .opts{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:8px 10px;min-width:0}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:7px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.ghost{background:none;color:var(--accent);border:1px solid var(--line)}
+.empty{color:var(--muted);text-align:center;padding:28px 16px;background:var(--surface);border:1px dashed var(--line);border-radius:10px}
+.filters{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:5px 12px;font:inherit;font-size:.82rem;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.deal-row.mine{background:color-mix(in srgb,var(--tag) 14%,var(--surface))}
+.strike{text-decoration:line-through;opacity:.7;font-weight:500}
+.note{font-size:.8rem;color:var(--muted)}
+details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88rem}
+.toast-box{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:8px;z-index:20;width:min(92vw,420px)}
+.toast{background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:9px;font-size:.88rem;box-shadow:0 6px 24px rgb(0 0 0 / .2);animation:in .25s ease-out}
+@keyframes in{from{transform:translateY(8px);opacity:.3}}
+@media (prefers-reduced-motion:reduce){.toast{animation:none}}
+.edit{display:grid;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--bg)}
+.edit .line{display:flex;gap:8px;flex-wrap:wrap}
+.edit .line > *{flex:1 1 140px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Unser Vorrat</h1>
+      <div class="sub">Gemeinsame Einkaufsliste · BILLA · HOFER · SPAR · LIDL</div>
+    </div>
+    <div class="sync"><span class="dot" id="dot"></span><span id="syncText">Verbinde …</span></div>
+  </header>
+
+  <div id="alert" class="alert" hidden></div>
+
+  <nav role="tablist">
+    <button role="tab" id="tab-liste" aria-selected="true" data-tab="liste">Einkauf <span class="count" id="c-liste"></span></button>
+    <button role="tab" id="tab-vorrat" aria-selected="false" data-tab="vorrat">Vorrat <span class="count" id="c-vorrat"></span></button>
+    <button role="tab" id="tab-aktionen" aria-selected="false" data-tab="aktionen">Aktionen <span class="count" id="c-aktionen"></span></button>
+  </nav>
+
+  <section class="panel" id="p-liste"></section>
+  <section class="panel" id="p-vorrat" hidden></section>
+  <section class="panel" id="p-aktionen" hidden></section>
+</div>
+<div class="toast-box" id="toasts" aria-live="polite"></div>
+
+<script>
+const CATS = ["Obst & Gemüse","Brot & Gebäck","Milch & Käse","Fleisch & Fisch","Vorrat & Konserven","Tiefkühl","Getränke","Snacks","Drogerie & Haushalt","Sonstiges"];
+const STORES = {billa:"BILLA",hofer:"HOFER",spar:"SPAR",lidl:"LIDL"};
+const ST_LABEL = {da:"da",knapp:"knapp",leer:"leer"};
+const NEXT = {da:"knapp",knapp:"leer",leer:"da"};
+
+const S = {items:[], deals:[], db:null, user:null, me:null, tab:"liste", storeFilter:"alle", editing:null, live:false, canWrite:true, names:{}, seenDeals:null};
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s||"").toLowerCase().replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
+const today = () => new Date().toISOString().slice(0,10);
+const fmtEur = n => (n==null||n==="") ? "" : Number(n).toLocaleString("de-AT",{style:"currency",currency:"EUR"});
+const fmtDate = d => d ? new Date(d+"T12:00").toLocaleDateString("de-AT",{day:"2-digit",month:"2-digit"}) : "";
+
+try{ const t = localStorage.getItem("vorrat-tab"); if(t) S.tab = t; }catch(e){}
+
+function toast(msg){
+  const el = document.createElement("div"); el.className="toast"; el.textContent=msg;
+  $("toasts").appendChild(el); setTimeout(()=>el.remove(), 5000);
+}
+
+/* ---------- Aktionen ↔ Produkte abgleichen ---------- */
+function activeDeals(){ const t=today(); return S.deals.filter(d => !d.validTo || d.validTo >= t); }
+function dealsFor(item){
+  const terms = [item.name, ...(item.keywords||[])].map(norm).filter(t=>t.length>=3);
+  return activeDeals().filter(d=>{
+    const text = norm(d.product+" "+(d.keywords||[]).join(" "));
+    if (terms.some(t => text.includes(t))) return true;
+    const iname = norm(item.name);
+    return (d.keywords||[]).map(norm).some(k => k.length>=3 && iname.includes(k));
+  });
+}
+function itemsFor(deal){ return S.items.filter(i => dealsFor(i).includes(deal)); }
+function needs(i){ return i.status==="knapp" || i.status==="leer"; }
+
+/* ---------- Rendering ---------- */
+function dealTag(d){
+  const was = d.was ? ` <span class="strike">${esc(fmtEur(d.was))}</span>` : (d.discount ? ` −${esc(d.discount)}%` : "");
+  return `<span class="store s-${esc(d.store)}">${esc(STORES[d.store]||d.store)}</span><span class="price">${esc(d.price!=null&&d.price!==""?fmtEur(d.price):"Aktion")}${was}</span>`;
+}
+function itemRow(i, mode){
+  const ds = dealsFor(i);
+  const dealsHtml = ds.slice(0,3).map(dealTag).join(" ");
+  const who = i.updatedBy && S.names[i.updatedBy] ? ` · ${esc(S.names[i.updatedBy])}` : "";
+  const left = mode==="liste"
+    ? `<button class="check" data-act="bought" data-id="${esc(i.id)}" aria-label="${esc(i.name)} gekauft" title="Gekauft"></button>`
+    : "";
+  const editing = S.editing===i.id;
+  return `<div class="row">
+    ${left}
+    <div class="main">
+      <div class="name">${esc(i.name)}${i.qty?` <span class="note">· ${esc(i.qty)}</span>`:""}</div>
+      <div class="meta"><span class="kind ${i.kind==="must"?"must":""}">${i.kind==="must"?"Must-have":"Rotation"}</span>${mode!=="liste"?` · ${esc(i.category||"Sonstiges")}`:""}${who}${ds.length?" "+dealsHtml:""}</div>
+    </div>
+    <button class="pill st-${esc(i.status)}" data-act="cycle" data-id="${esc(i.id)}" title="Status wechseln">${ST_LABEL[i.status]||"da"}</button>
+    <button class="icon-btn" data-act="edit" data-id="${esc(i.id)}" aria-label="${esc(i.name)} bearbeiten">⋯</button>
+  </div>${editing?editForm(i):""}`;
+}
+function editForm(i){
+  return `<form class="edit" data-form="edit" data-id="${esc(i.id)}">
+    <div class="line">
+      <input id="e-name" name="name" value="${esc(i.name)}" aria-label="Name" required>
+      <input id="e-qty" name="qty" value="${esc(i.qty||"")}" placeholder="Menge, z. B. 2 l" aria-label="Menge">
+    </div>
+    <div class="line">
+      <select id="e-kind" name="kind" aria-label="Art"><option value="must" ${i.kind==="must"?"selected":""}>Must-have</option><option value="rotation" ${i.kind!=="must"?"selected":""}>Rotation</option></select>
+      <select id="e-cat" name="category" aria-label="Kategorie">${CATS.map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select>
+    </div>
+    <input id="e-kw" name="keywords" value="${esc((i.keywords||[]).join(", "))}" placeholder="Suchbegriffe für Aktionen, z. B. Schärdinger, Vollmilch" aria-label="Suchbegriffe">
+    <div class="line" style="justify-content:space-between">
+      <button type="button" class="btn ghost" data-act="delete" data-id="${esc(i.id)}" style="flex:0 0 auto">Löschen</button>
+      <button class="btn" style="flex:0 0 auto">Speichern</button>
+    </div>
+  </form>`;
+}
+function addForm(defaultKind){
+  return `<form class="add" data-form="add">
+    <input id="a-name" name="name" placeholder="Produkt hinzufügen …" aria-label="Produktname" required ${S.canWrite?"":"disabled"}>
+    <button class="btn" ${S.canWrite?"":"disabled"}>Hinzufügen</button>
+    <div class="opts">
+      <select id="a-kind" name="kind" aria-label="Art"><option value="rotation" ${defaultKind!=="must"?"selected":""}>Rotation</option><option value="must" ${defaultKind==="must"?"selected":""}>Must-have</option></select>
+      <select id="a-cat" name="category" aria-label="Kategorie">${CATS.map(c=>`<option>${c}</option>`).join("")}</select>
+      <select id="a-status" name="status" aria-label="Status"><option value="leer">gleich auf die Liste</option><option value="da">nur in den Vorrat</option></select>
+    </div>
+  </form>`;
+}
+function grouped(list, mode){
+  const by = {};
+  list.forEach(i => (by[i.category||"Sonstiges"] ||= []).push(i));
+  return CATS.filter(c=>by[c]).map(c=>`<div class="group"><h2><span>${esc(c)}</span><span>${by[c].length}</span></h2><div class="rows">${by[c].sort((a,b)=>a.name.localeCompare(b.name,"de")).map(i=>itemRow(i,mode)).join("")}</div></div>`).join("");
+}
+
+function renderListe(){
+  const list = S.items.filter(needs);
+  const withDeal = list.filter(i=>dealsFor(i).length);
+  let h = addForm("rotation");
+  if (!S.items.length) h += `<div class="empty">${S.live?"Noch keine Produkte. Legt oben das erste an, zum Beispiel „Milch“ als Must-have.":"Lade eure Liste …"}</div>`;
+  else if (!list.length) h += `<div class="empty">Alles da. Setzt im Vorrat ein Produkt auf „knapp“ oder „leer“, dann landet es hier.</div>`;
+  else {
+    if (withDeal.length) h += `<div class="group"><h2><span>Gerade in Aktion</span><span>${withDeal.length}</span></h2><div class="rows">${withDeal.map(i=>itemRow(i,"liste")).join("")}</div></div>`;
+    h += grouped(list.filter(i=>!withDeal.includes(i)), "liste");
+  }
+  $("p-liste").innerHTML = h;
+}
+function renderVorrat(){
+  const must = S.items.filter(i=>i.kind==="must"), rot = S.items.filter(i=>i.kind!=="must");
+  const block = (title, arr, hint) => `<div class="group"><h2><span>${title}</span><span>${arr.length}</span></h2>${arr.length?`<div class="rows">${arr.sort((a,b)=>({leer:0,knapp:1,da:2}[a.status]-{leer:0,knapp:1,da:2}[b.status])||a.name.localeCompare(b.name,"de")).map(i=>itemRow(i,"vorrat")).join("")}</div>`:`<div class="empty">${hint}</div>`}</div>`;
+  $("p-vorrat").innerHTML = addForm("must")
+    + `<p class="note" style="margin:0">Tippt auf den Status: da → knapp → leer. Alles, was knapp oder leer ist, steht automatisch auf der Einkaufsliste.</p>`
+    + block("Must-haves · immer im Haus", must, "Must-haves sind Dinge, die nie ausgehen dürfen.")
+    + block("Rotation · je nach Lust & Saison", rot, "Rotation sind Produkte, die ihr nur ab und zu kauft.");
+}
+function renderAktionen(){
+  const t = today();
+  const act = activeDeals().filter(d => S.storeFilter==="alle" || d.store===S.storeFilter);
+  const old = S.deals.filter(d => d.validTo && d.validTo < t);
+  act.sort((a,b)=> (itemsFor(b).length?1:0)-(itemsFor(a).length?1:0) || (a.validTo||"").localeCompare(b.validTo||""));
+  const row = d => {
+    const mine = itemsFor(d);
+    const range = d.validFrom||d.validTo ? `${fmtDate(d.validFrom)}–${fmtDate(d.validTo)}` : "";
+    const upcoming = d.validFrom && d.validFrom > t;
+    return `<div class="row deal-row ${mine.length?"mine":""}">
+      <div class="main">
+        <div class="name">${esc(d.product)}</div>
+        <div class="meta">${dealTag(d)}${d.unit?` <span>${esc(d.unit)}</span>`:""}${range?` · ${upcoming?"ab ":""}${range}`:""}${d.condition?` · ${esc(d.condition)}`:""}</div>
+        ${mine.length?`<div class="meta"><b>Passt zu: ${mine.map(i=>esc(i.name)).join(", ")}</b></div>`:""}
+      </div>
+      ${S.canWrite?`<button class="icon-btn" data-act="deldeal" data-id="${esc(d.id)}" aria-label="Aktion entfernen">×</button>`:""}
+    </div>`;
+  };
+  $("p-aktionen").innerHTML = `
+    <div class="filters">${["alle",...Object.keys(STORES)].map(s=>`<button class="chip" data-store="${s}" aria-pressed="${S.storeFilter===s}">${s==="alle"?"Alle":STORES[s]}</button>`).join("")}</div>
+    ${act.length?`<div class="rows">${act.map(row).join("")}</div>`:`<div class="empty">${S.live?"Keine laufenden Aktionen eingetragen. Tragt unten eine aus dem Flugblatt ein, oder lasst Claude die neuen Aktionen eintragen.":"Lade Aktionen …"}</div>`}
+    <details><summary>Aktion selbst eintragen</summary>
+      <form class="add" data-form="deal" style="margin-top:8px">
+        <input id="d-product" name="product" placeholder="Produkt, z. B. Schärdinger Butter 250 g" required aria-label="Produkt">
+        <button class="btn" ${S.canWrite?"":"disabled"}>Speichern</button>
+        <div class="opts">
+          <select id="d-store" name="store" aria-label="Händler">${Object.entries(STORES).map(([k,v])=>`<option value="${k}">${v}</option>`).join("")}</select>
+          <input id="d-price" name="price" inputmode="decimal" placeholder="Preis €" style="width:90px" aria-label="Aktionspreis">
+          <input id="d-was" name="was" inputmode="decimal" placeholder="statt €" style="width:90px" aria-label="Normalpreis">
+          <input id="d-from" name="validFrom" type="date" aria-label="gültig ab">
+          <input id="d-to" name="validTo" type="date" aria-label="gültig bis">
+          <input id="d-cond" name="condition" placeholder="Bedingung, z. B. jö / Lidl Plus" aria-label="Bedingung">
+        </div>
+      </form>
+    </details>
+    <p class="note" style="margin:0">Preise ohne Gewähr. Vor dem Einkauf bitte im Flugblatt oder in der App des Händlers prüfen.${old.length?` ${old.length} abgelaufene Aktion(en) ausgeblendet.`:""}</p>`;
+}
+function renderAlert(){
+  const hits = S.items.filter(i=>dealsFor(i).length);
+  const el = $("alert");
+  if (!hits.length){ el.hidden = true; return; }
+  const names = hits.slice(0,4).map(i=>i.name);
+  el.innerHTML = `<span><b>${hits.length} eurer Produkte ${hits.length===1?"ist":"sind"} gerade in Aktion:</b> ${esc(names.join(", "))}${hits.length>4?" …":""}</span><button data-act="goto-aktionen">Ansehen</button>`;
+  el.hidden = false;
+}
+function render(){
+  renderAlert();
+  $("c-liste").textContent = S.items.filter(needs).length || "";
+  $("c-vorrat").textContent = S.items.length || "";
+  $("c-aktionen").textContent = activeDeals().length || "";
+  for (const t of ["liste","vorrat","aktionen"]){
+    $("p-"+t).hidden = S.tab!==t;
+    $("tab-"+t).setAttribute("aria-selected", S.tab===t);
+  }
+  ({liste:renderListe, vorrat:renderVorrat, aktionen:renderAktionen})[S.tab]();
+}
+
+/* ---------- Schreiben ---------- */
+async function write(fn, okMsg){
+  if (!S.db){ toast("Keine Verbindung zur gemeinsamen Liste."); return; }
+  try { await fn(); if(okMsg) toast(okMsg); }
+  catch(e){
+    if (e && e.code==="invalid_argument"){ S.canWrite=false; toast("Ihr könnt diese Liste nur ansehen. Der Besitzer muss euch als Mitwirkende freigeben."); render(); }
+    else if (e && e.code==="quota_exceeded") toast("Die Liste ist voll. Löscht alte Aktionen oder Produkte.");
+    else toast("Speichern hat nicht geklappt. Bitte nochmal versuchen.");
+  }
+}
+const stamp = () => ({updatedAt: Date.now(), updatedBy: S.me || null});
+const itemRef = id => S.db.collection("items").doc(id);
+
+document.addEventListener("click", e=>{
+  const b = e.target.closest("[data-act],[data-tab],[data-store]"); if(!b) return;
+  if (b.dataset.tab){ S.tab=b.dataset.tab; S.editing=null; try{localStorage.setItem("vorrat-tab",S.tab)}catch(_){} render(); return; }
+  if (b.dataset.store){ S.storeFilter=b.dataset.store; render(); return; }
+  const id = b.dataset.id, it = S.items.find(i=>i.id===id);
+  switch(b.dataset.act){
+    case "goto-aktionen": S.tab="aktionen"; render(); break;
+    case "cycle": if(it) write(()=>itemRef(id).update({status:NEXT[it.status]||"knapp",...stamp()})); break;
+    case "bought": if(it) write(()=>itemRef(id).update({status:"da",lastBought:today(),...stamp()}), `${it.name} abgehakt`); break;
+    case "edit": S.editing = S.editing===id?null:id; render(); break;
+    case "delete": if(it){ S.editing=null; write(()=>itemRef(id).delete(), `${it.name} gelöscht`); } break;
+    case "deldeal": write(()=>S.db.collection("deals").doc(id).delete()); break;
+  }
+});
+document.addEventListener("submit", e=>{
+  const f = e.target.closest("form[data-form]"); if(!f) return;
+  e.preventDefault();
+  const v = Object.fromEntries(new FormData(f));
+  if (f.dataset.form==="add"){
+    const name = v.name.trim(); if(!name) return;
+    write(()=>S.db.collection("items").add({name, kind:v.kind, category:v.category, status:v.status, keywords:[], qty:"", ...stamp()}), `${name} hinzugefügt`);
+    f.reset();
+  } else if (f.dataset.form==="edit"){
+    const id=f.dataset.id;
+    S.editing=null;
+    write(()=>itemRef(id).update({name:v.name.trim(), qty:v.qty.trim(), kind:v.kind, category:v.category, keywords:v.keywords.split(",").map(s=>s.trim()).filter(Boolean), ...stamp()}), "Gespeichert");
+  } else if (f.dataset.form==="deal"){
+    const num = s => s ? Number(String(s).replace(",", ".")) : null;
+    const product=v.product.trim(); if(!product) return;
+    const words = norm(product).split(/[^a-z0-9]+/).filter(w=>w.length>=4);
+    write(()=>S.db.collection("deals").add({store:v.store, product, price:num(v.price), was:num(v.was), validFrom:v.validFrom||null, validTo:v.validTo||null, condition:v.condition.trim(), keywords:words, source:"selbst eingetragen", addedBy:S.me||null, addedAt:Date.now()}), "Aktion gespeichert");
+    f.reset();
+  }
+});
+
+/* ---------- Verbindung ---------- */
+function setSync(live, text){ $("dot").classList.toggle("live", live); $("syncText").textContent = text; }
+render();
+(async()=>{
+  const timer = setTimeout(()=>{ if(!S.live) setSync(false,"Liste gerade nicht erreichbar"); }, 10000);
+  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+  S.user = user;
+  if (!db){ clearTimeout(timer); setSync(false,"Bitte anmelden, um die gemeinsame Liste zu sehen"); return; }
+  S.db = db;
+  if (user){
+    try{ S.me = await user.id(); }catch(_){}
+    try{ const c = await user.can("data.write"); if (c===false) S.canWrite=false; }catch(_){}
+  }
+  const resolveNames = async () => {
+    if(!user) return;
+    const ids = [...new Set(S.items.map(i=>i.updatedBy).filter(Boolean))];
+    if(!ids.length) return;
+    try{ const ps = await user.profiles(ids); for(const id of ids){ const n = ps[id]?.name; S.names[id] = id===S.me ? "du" : (n ? n.split(" ")[0] : ""); } render(); }catch(_){}
+  };
+  let firstItems = true;
+  db.collection("items").onSnapshot(snap=>{
+    if(!snap.metadata.fromCache){ clearTimeout(timer); S.live=true; setSync(true,"Live synchron"); }
+    if(!firstItems){
+      for(const ch of snap.docChanges()){
+        const d = ch.doc.data()||{};
+        if(ch.type!=="removed" && d.updatedBy && d.updatedBy!==S.me && !snap.metadata.hasPendingWrites){
+          const who = S.names[d.updatedBy] || "Dein Schatz";
+          if(ch.type==="added") toast(`${who} hat ${d.name} hinzugefügt`);
+          else if(d.status==="leer") toast(`${who}: ${d.name} ist leer`);
+          else if(d.status==="da" && d.lastBought===today()) toast(`${who} hat ${d.name} gekauft`);
+        }
+      }
+    }
+    firstItems = false;
+    S.items = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    render(); resolveNames();
+  }, err=>{ clearTimeout(timer); setSync(false,"Verbindung verloren – Seite neu öffnen"); });
+  db.collection("deals").onSnapshot(snap=>{
+    const prev = S.seenDeals;
+    S.deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if(prev){
+      for(const ch of snap.docChanges()) if(ch.type==="added" && !prev.has(ch.doc.id)){
+        const d = S.deals.find(x=>x.id===ch.doc.id); const m = d && itemsFor(d);
+        if(m && m.length) toast(`Neu in Aktion bei ${STORES[d.store]||d.store}: ${d.product}`);
+      }
+    }
+    S.seenDeals = new Set(S.deals.map(d=>d.id));
+    render();
+  }, ()=>{});
+})();
+</script>
