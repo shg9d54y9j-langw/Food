@@ -3,7 +3,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap">
 <style>
-/* Layout: eine schmale App-Spalte wie ein Küchenblock – warmer Kopf mit Gruß, drei Reiter, weiche Zeilenblöcke */
+/* Layout: eine schmale App-Spalte wie ein Küchenblock – warmer Kopf mit Gruß, vier Reiter, weiche Zeilenblöcke */
 :root{
   --bg:#fbf1ea; --surface:#fffaf6; --ink:#2b1d24; --muted:#7a6168; --line:#efdcd2;
   --accent:#8a2f62; --accent-ink:#fff6fa; --tag:#ffc94a; --tag-ink:#3a2410;
@@ -38,9 +38,9 @@ h1{font-family:var(--f-display);font-weight:800;font-size:2.2rem;margin:0;letter
 .alert{background:var(--tag);color:var(--tag-ink);border-radius:16px;box-shadow:var(--shadow);padding:12px 14px;display:flex;gap:10px;align-items:flex-start;font-weight:500}
 .alert b{font-weight:700}
 .alert button{margin-left:auto;background:none;border:1px solid currentColor;color:inherit;border-radius:6px;padding:4px 10px;font:inherit;font-size:.82rem;cursor:pointer;white-space:nowrap}
-nav{display:grid;grid-template-columns:repeat(3,1fr);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px;box-shadow:var(--shadow);gap:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+nav{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:5px;box-shadow:var(--shadow);gap:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-nav button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;padding:10px 6px;border-radius:99px;transition:background .2s,color .2s;cursor:pointer;display:flex;justify-content:center;gap:6px;align-items:center}
+nav button{border:0;background:none;color:var(--muted);font:inherit;font-weight:700;padding:10px 4px;border-radius:99px;font-size:.88rem;transition:background .2s,color .2s;cursor:pointer;display:flex;justify-content:center;gap:6px;align-items:center}
 nav button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
 .count{font-size:.75rem;font-variant-numeric:tabular-nums;opacity:.85}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
@@ -89,6 +89,28 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88
 .edit{display:grid;gap:8px;padding:10px 12px;border-top:1px solid var(--line);background:var(--bg)}
 .edit .line{display:flex;gap:8px;flex-wrap:wrap}
 .edit .line > *{flex:1 1 140px}
+.st-faellig{background:var(--low-bg);color:var(--low);outline:1.5px dashed currentColor;outline-offset:-1.5px}
+.inote{font-size:.8rem;color:var(--ink);opacity:.8;font-style:italic;margin-top:2px;overflow-wrap:anywhere}
+.save{font-size:.72rem;font-weight:700;color:var(--ok)}
+.save.no{color:var(--muted);font-weight:500}
+.shopbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.shopbar .lbl{font-size:.8rem;color:var(--muted);margin-right:2px}
+.card{background:var(--surface);border-radius:18px;padding:16px;box-shadow:var(--shadow);display:grid;gap:10px}
+.card h3{font-family:var(--f-display);font-weight:600;font-size:1.15rem;margin:0;text-wrap:balance}
+.card .why{font-size:.84rem;color:var(--muted)}
+.ings{display:grid;gap:2px}
+.ing{display:flex;gap:10px;align-items:center;padding:6px 2px;border-top:1px solid var(--line);font-size:.9rem}
+.ing:first-child{border-top:0}
+.ing input{width:18px;height:18px;accent-color:var(--accent);flex:none;padding:0}
+.ing .q{color:var(--muted);font-size:.8rem;margin-left:auto;text-align:right}
+.have{font-size:.7rem;font-weight:600;color:var(--ok);background:var(--ok-bg);border-radius:99px;padding:1px 7px}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.hist{font-size:.82rem;color:var(--muted)}
+.hist b{color:var(--ink);font-weight:600}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .8s linear infinite;vertical-align:-2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+.edit label{font-size:.74rem;color:var(--muted);display:grid;gap:3px}
 </style>
 
 <div class="wrap">
@@ -107,11 +129,13 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88
     <button role="tab" id="tab-liste" aria-selected="true" data-tab="liste">Einkauf <span class="count" id="c-liste"></span></button>
     <button role="tab" id="tab-vorrat" aria-selected="false" data-tab="vorrat">Vorrat <span class="count" id="c-vorrat"></span></button>
     <button role="tab" id="tab-aktionen" aria-selected="false" data-tab="aktionen">Aktionen <span class="count" id="c-aktionen"></span></button>
+    <button role="tab" id="tab-kochen" aria-selected="false" data-tab="kochen">Kochen</button>
   </nav>
 
   <section class="panel" id="p-liste"></section>
   <section class="panel" id="p-vorrat" hidden></section>
   <section class="panel" id="p-aktionen" hidden></section>
+  <section class="panel" id="p-kochen" hidden></section>
 
   <details class="install" id="install">
     <summary>Als App aufs iPhone legen</summary>
@@ -128,27 +152,47 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88
 <script>
 const CATS = ["Obst & Gemüse","Brot & Gebäck","Milch & Käse","Fleisch & Fisch","Vorrat & Konserven","Tiefkühl","Getränke","Snacks","Drogerie & Haushalt","Sonstiges"];
 const STORES = {billa:"BILLA",hofer:"HOFER",spar:"SPAR",lidl:"LIDL"};
-const ST_LABEL = {da:"da",knapp:"knapp",leer:"leer"};
-const NEXT = {da:"knapp",knapp:"leer",leer:"da"};
+const ST_LABEL = {da:"da",knapp:"knapp",leer:"leer",faellig:"fällig"};
+const NEXT = {da:"knapp",knapp:"leer",leer:"da",faellig:"leer"};
+const ORDER = {leer:0,knapp:1,faellig:2,da:3};
 
-const S = {items:[], deals:[], db:null, user:null, me:null, tab:"liste", storeFilter:"alle", editing:null, live:false, canWrite:true, names:{}, seenDeals:null};
+const S = {items:[], deals:[], db:null, user:null, sample:null, me:null, tab:"liste", storeFilter:"alle", shopStore:"alle",
+  editing:null, live:false, canWrite:true, names:{}, seenDeals:null, meta:null, ideas:null, recipe:null, busy:null};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const norm = s => String(s||"").toLowerCase().replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
-const today = () => new Date().toISOString().slice(0,10);
+const norm = s => String(s||"").toLowerCase().replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+const today = () => { const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const daysBetween = (a,b) => Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/86400000);
 const fmtEur = n => (n==null||n==="") ? "" : Number(n).toLocaleString("de-AT",{style:"currency",currency:"EUR"});
 const fmtDate = d => d ? new Date(d+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit"}) : "";
 const fmtStamp = iso => { try{ return new Date(iso).toLocaleString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(_){ return ""; } };
-S.meta = null;
+const num = s => { if(s==null||s==="") return null; const n=Number(String(s).replace(",", ".")); return isFinite(n)?n:null; };
 
-try{ const t = localStorage.getItem("vorrat-tab"); if(t) S.tab = t; }catch(e){}
+try{ const t = localStorage.getItem("vorrat-tab"); if(t && ["liste","vorrat","aktionen","kochen"].includes(t)) S.tab = t; }catch(e){}
+try{ const s = localStorage.getItem("vorrat-shop"); if(s) S.shopStore = s; }catch(e){}
 
 function toast(msg){
   const el = document.createElement("div"); el.className="toast"; el.textContent=msg;
   $("toasts").appendChild(el); setTimeout(()=>el.remove(), 5000);
 }
 
-/* ---------- Aktionen ↔ Produkte abgleichen ---------- */
+/* ---------- Status, Rhythmus, Verlauf ---------- */
+function estimate(i){
+  const h = (i.history||[]).map(x=>x.d).filter(Boolean).sort();
+  if (h.length < 3) return null;
+  return Math.max(1, Math.round(daysBetween(h[0], h[h.length-1]) / (h.length-1)));
+}
+function effStatus(i){
+  const s = i.status || "da";
+  if (s !== "da") return s;
+  const every = Number(i.everyDays)||0;
+  if (every && i.lastBought && daysBetween(i.lastBought, today()) >= every) return "faellig";
+  return "da";
+}
+const needs = i => effStatus(i) !== "da";
+const whoName = id => !id ? "" : (id===S.me ? "du" : (S.names[id] || "dein Schatz"));
+
+/* ---------- Aktionen ↔ Produkte ---------- */
 function activeDeals(){ const t=today(); return S.deals.filter(d => !d.validTo || d.validTo >= t); }
 const isNow = d => !d.validFrom || d.validFrom <= today();
 function dealsFor(item){
@@ -162,45 +206,68 @@ function dealsFor(item){
   });
 }
 function itemsFor(deal){ return S.items.filter(i => dealsFor(i).includes(deal)); }
-function needs(i){ return i.status==="knapp" || i.status==="leer"; }
+function findItem(name){
+  const n = norm(name); if(!n) return null;
+  return S.items.find(i => norm(i.name)===n)
+      || S.items.find(i => [i.name,...(i.keywords||[])].map(norm).some(t => t.length>=3 && (n.includes(t) || t.includes(n) && n.length>=4)));
+}
 
-/* ---------- Rendering ---------- */
-function dealTag(d){
+/* ---------- Rendering-Bausteine ---------- */
+function saving(d, item){
+  if (!item || !item.normalPrice || d.price==null || d.price==="") return "";
+  const pct = Math.round((1 - Number(d.price)/Number(item.normalPrice))*100);
+  return pct > 0 ? `<span class="save">${pct} % unter eurem Preis</span>` : `<span class="save no">nicht günstiger als sonst</span>`;
+}
+function dealTag(d, item){
   const hasPrice = d.price!=null && d.price!=="";
   const was = d.was ? ` <span class="strike">${esc(fmtEur(d.was))}</span>` : "";
-  const label = hasPrice ? fmtEur(d.price) + "" : (d.discount ? `${d.upTo?"bis ":""}−${d.discount} %` : "Aktion");
+  const label = hasPrice ? fmtEur(d.price) : (d.discount ? `${d.upTo?"bis ":""}−${d.discount} %` : "Aktion");
   const soon = isNow(d) ? "" : `<span class="soon">ab ${esc(fmtDate(d.validFrom))}</span>`;
-  return `<span class="store s-${esc(d.store)}">${esc(STORES[d.store]||d.store)}</span><span class="price">${esc(label)}${was}</span>${soon}`;
+  return `<span class="store s-${esc(d.store)}">${esc(STORES[d.store]||d.store)}</span><span class="price">${esc(label)}${was}</span>${soon}${saving(d,item)}`;
 }
 function itemRow(i, mode){
-  const ds = dealsFor(i);
-  const dealsHtml = ds.slice(0,3).map(dealTag).join(" ");
-  const who = i.updatedBy && S.names[i.updatedBy] ? ` · ${esc(S.names[i.updatedBy])}` : "";
-  const left = mode==="liste"
-    ? `<button class="check" data-act="bought" data-id="${esc(i.id)}" aria-label="${esc(i.name)} gekauft" title="Gekauft"></button>`
-    : "";
-  const editing = S.editing===i.id;
+  let ds = dealsFor(i);
+  if (mode==="liste" && S.shopStore!=="alle") ds = ds.filter(d=>d.store===S.shopStore).concat(ds.filter(d=>d.store!==S.shopStore));
+  const st = effStatus(i);
+  const dealsHtml = ds.slice(0,3).map(d=>dealTag(d,i)).join(" ");
+  const who = i.updatedBy ? ` · ${esc(whoName(i.updatedBy))}` : "";
+  const rhythm = st==="faellig" ? ` · alle ${esc(i.everyDays)} Tage` : "";
+  const left = mode==="liste" ? `<button class="check" data-act="bought" data-id="${esc(i.id)}" aria-label="${esc(i.name)} gekauft" title="Gekauft"></button>` : "";
   return `<div class="row">
     ${left}
     <div class="main">
       <div class="name">${esc(i.name)}${i.qty?` <span class="note">· ${esc(i.qty)}</span>`:""}</div>
-      <div class="meta"><span class="kind ${i.kind==="must"?"must":""}">${i.kind==="must"?"Must-have":"Rotation"}</span>${mode!=="liste"?` · ${esc(i.category||"Sonstiges")}`:""}${who}${ds.length?" "+dealsHtml:""}</div>
+      ${i.note?`<div class="inote">„${esc(i.note)}“</div>`:""}
+      <div class="meta"><span class="kind ${i.kind==="must"?"must":""}">${i.kind==="must"?"Must-have":"Rotation"}</span>${mode!=="liste"?` · ${esc(i.category||"Sonstiges")}`:""}${rhythm}${who}${ds.length?" "+dealsHtml:""}</div>
     </div>
-    <button class="pill st-${esc(i.status)}" data-act="cycle" data-id="${esc(i.id)}" title="Status wechseln">${ST_LABEL[i.status]||"da"}</button>
+    <button class="pill st-${esc(st)}" data-act="cycle" data-id="${esc(i.id)}" title="Status wechseln">${ST_LABEL[st]}</button>
     <button class="icon-btn" data-act="edit" data-id="${esc(i.id)}" aria-label="${esc(i.name)} bearbeiten">⋯</button>
-  </div>${editing?editForm(i):""}`;
+  </div>${S.editing===i.id?editForm(i):""}`;
+}
+function historyText(i){
+  const h = (i.history||[]).slice().sort((a,b)=>b.d.localeCompare(a.d));
+  if (!h.length) return i.lastBought ? `Zuletzt gekauft: ${fmtDate(i.lastBought)}` : "Noch nie abgehakt.";
+  const est = estimate(i);
+  return `Zuletzt: <b>${esc(h.slice(0,4).map(x=>fmtDate(x.d)+(x.by?" ("+whoName(x.by)+")":"")).join(", "))}</b>${est?` · ihr kauft es etwa <b>alle ${est} Tage</b>`:""}`;
 }
 function editForm(i){
+  const est = estimate(i);
   return `<form class="edit" data-form="edit" data-id="${esc(i.id)}">
     <div class="line">
-      <input id="e-name" name="name" value="${esc(i.name)}" aria-label="Name" required>
-      <input id="e-qty" name="qty" value="${esc(i.qty||"")}" placeholder="Menge, z. B. 2 l" aria-label="Menge">
+      <label>Name<input id="e-name" name="name" value="${esc(i.name)}" required></label>
+      <label>Menge<input id="e-qty" name="qty" value="${esc(i.qty||"")}" placeholder="z. B. 2 l"></label>
+    </div>
+    <label>Notiz für den Einkauf<input id="e-note" name="note" value="${esc(i.note||"")}" placeholder="z. B. nur die laktosefreie von Schärdinger"></label>
+    <div class="line">
+      <label>Art<select id="e-kind" name="kind"><option value="must" ${i.kind==="must"?"selected":""}>Must-have</option><option value="rotation" ${i.kind!=="must"?"selected":""}>Rotation</option></select></label>
+      <label>Kategorie<select id="e-cat" name="category">${CATS.map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select></label>
     </div>
     <div class="line">
-      <select id="e-kind" name="kind" aria-label="Art"><option value="must" ${i.kind==="must"?"selected":""}>Must-have</option><option value="rotation" ${i.kind!=="must"?"selected":""}>Rotation</option></select>
-      <select id="e-cat" name="category" aria-label="Kategorie">${CATS.map(c=>`<option ${c===i.category?"selected":""}>${c}</option>`).join("")}</select>
+      <label>Normaler Preis (€)<input id="e-price" name="normalPrice" inputmode="decimal" value="${esc(i.normalPrice??"")}" placeholder="z. B. 1,59"></label>
+      <label>Automatisch fällig alle … Tage<input id="e-every" name="everyDays" inputmode="numeric" value="${esc(i.everyDays??"")}" placeholder="${est?`Vorschlag: ${est}`:"z. B. 7"}"></label>
     </div>
-    <input id="e-kw" name="keywords" value="${esc((i.keywords||[]).join(", "))}" placeholder="Suchbegriffe für Aktionen, z. B. Schärdinger, Vollmilch" aria-label="Suchbegriffe">
+    <label>Suchbegriffe für Aktionen<input id="e-kw" name="keywords" value="${esc((i.keywords||[]).join(", "))}" placeholder="z. B. Schärdinger, Vollmilch"></label>
+    <div class="hist">${historyText(i)}</div>
     <div class="line" style="justify-content:space-between">
       <button type="button" class="btn ghost" data-act="delete" data-id="${esc(i.id)}" style="flex:0 0 auto">Löschen</button>
       <button class="btn" style="flex:0 0 auto">Speichern</button>
@@ -223,26 +290,49 @@ function grouped(list, mode){
   list.forEach(i => (by[i.category||"Sonstiges"] ||= []).push(i));
   return CATS.filter(c=>by[c]).map(c=>`<div class="group"><h2><span>${esc(c)}</span><span>${by[c].length}</span></h2><div class="rows">${by[c].sort((a,b)=>a.name.localeCompare(b.name,"de")).map(i=>itemRow(i,mode)).join("")}</div></div>`).join("");
 }
+const block = (title, arr, mode) => arr.length ? `<div class="group"><h2><span>${title}</span><span>${arr.length}</span></h2><div class="rows">${arr.map(i=>itemRow(i,mode)).join("")}</div></div>` : "";
 
+/* ---------- Einkauf ---------- */
 function renderListe(){
   const list = S.items.filter(needs);
-  const withDeal = list.filter(i=>dealsFor(i).length);
+  const st = S.shopStore;
   let h = addForm("rotation");
+  h += `<div class="shopbar"><span class="lbl">Ich bin bei:</span>${["alle",...Object.keys(STORES)].map(s=>`<button class="chip" data-shop="${s}" aria-pressed="${st===s}">${s==="alle"?"Egal":STORES[s]}</button>`).join("")}</div>`;
   if (!S.items.length) h += `<div class="empty">${S.live?"Noch keine Produkte. Legt oben das erste an, zum Beispiel „Milch“ als Must-have.":"Lade eure Liste …"}</div>`;
   else if (!list.length) h += `<div class="empty">Alles da. Setzt im Vorrat ein Produkt auf „knapp“ oder „leer“, dann landet es hier.</div>`;
   else {
-    if (withDeal.length) h += `<div class="group"><h2><span>Gerade in Aktion</span><span>${withDeal.length}</span></h2><div class="rows">${withDeal.map(i=>itemRow(i,"liste")).join("")}</div></div>`;
-    h += grouped(list.filter(i=>!withDeal.includes(i)), "liste");
+    const hasNow = i => dealsFor(i).some(d => isNow(d) && (st==="alle" || d.store===st));
+    const hot = list.filter(hasNow);
+    h += block(st==="alle" ? "Gerade in Aktion" : `Bei ${STORES[st]} in Aktion`, hot, "liste");
+    h += grouped(list.filter(i=>!hot.includes(i)), "liste");
+  }
+  if (st!=="alle"){
+    const stock = S.items.filter(i => !needs(i) && dealsFor(i).some(d=>isNow(d) && d.store===st));
+    if (stock.length) h += `<div class="group"><h2><span>Noch da, aber bei ${STORES[st]} günstig</span><span>${stock.length}</span></h2><div class="rows">${stock.map(i=>itemRow(i,"liste")).join("")}</div></div>`;
   }
   $("p-liste").innerHTML = h;
 }
+
+/* ---------- Vorrat ---------- */
 function renderVorrat(){
-  const must = S.items.filter(i=>i.kind==="must"), rot = S.items.filter(i=>i.kind!=="must");
-  const block = (title, arr, hint) => `<div class="group"><h2><span>${title}</span><span>${arr.length}</span></h2>${arr.length?`<div class="rows">${arr.sort((a,b)=>({leer:0,knapp:1,da:2}[a.status]-{leer:0,knapp:1,da:2}[b.status])||a.name.localeCompare(b.name,"de")).map(i=>itemRow(i,"vorrat")).join("")}</div>`:`<div class="empty">${hint}</div>`}</div>`;
+  const sort = arr => arr.sort((a,b)=>ORDER[effStatus(a)]-ORDER[effStatus(b)] || a.name.localeCompare(b.name,"de"));
+  const must = sort(S.items.filter(i=>i.kind==="must")), rot = sort(S.items.filter(i=>i.kind!=="must"));
+  const sec = (title, arr, hint) => arr.length ? block(title, arr, "vorrat") : `<div class="group"><h2><span>${title}</span><span>0</span></h2><div class="empty">${hint}</div></div>`;
+  const hist = S.items.flatMap(i => (i.history||[]).map(x => ({...x, name:i.name}))).sort((a,b)=>b.d.localeCompare(a.d) || (b.t||0)-(a.t||0)).slice(0,12);
   $("p-vorrat").innerHTML = addForm("must")
-    + `<p class="note" style="margin:0">Tippt auf den Status: da → knapp → leer. Alles, was knapp oder leer ist, steht automatisch auf der Einkaufsliste.</p>`
-    + block("Must-haves · immer im Haus", must, "Must-haves sind Dinge, die nie ausgehen dürfen.")
-    + block("Rotation · je nach Lust & Saison", rot, "Rotation sind Produkte, die ihr nur ab und zu kauft.");
+    + `<p class="note" style="margin:0 4px">Tippt auf den Status: da → knapp → leer. Mit „⋯“ legt ihr Notiz, normalen Preis und Rhythmus fest. Ein Produkt mit Rhythmus wird nach der eingestellten Zeit von selbst „fällig“.</p>`
+    + sec("Must-haves · immer im Haus", must, "Must-haves sind Dinge, die nie ausgehen dürfen.")
+    + sec("Rotation · je nach Lust & Saison", rot, "Rotation sind Produkte, die ihr nur ab und zu kauft.")
+    + `<div class="group"><h2><span>Zuletzt gekauft</span><span>${hist.length}</span></h2>${hist.length
+        ? `<div class="rows">${hist.map(x=>`<div class="row" style="min-height:44px"><div class="main"><div class="name">${esc(x.name)}</div></div><span class="note">${esc(fmtDate(x.d))}${x.by?" · "+esc(whoName(x.by)):""}</span></div>`).join("")}</div>`
+        : `<div class="empty">Sobald ihr auf der Einkaufsliste etwas abhakt, steht es hier.</div>`}</div>`;
+}
+
+/* ---------- Aktionen ---------- */
+function updatedLine(){
+  const m = S.meta;
+  if (!m || !m.lastRun) return `<p class="note" style="margin:0 4px">Aktionen werden automatisch zweimal pro Woche aktualisiert.</p>`;
+  return `<p class="note" style="margin:0 4px">Automatisch aktualisiert: ${esc(fmtStamp(m.lastRun))}${m.nextRun?` · nächste Prüfung ${esc(fmtStamp(m.nextRun))}`:""}${m.summary?`<br>${esc(m.summary)}`:""}</p>`;
 }
 function renderAktionen(){
   const t = today();
@@ -252,12 +342,11 @@ function renderAktionen(){
   const act = all.filter(isNow).sort(sorter), soon = all.filter(d=>!isNow(d)).sort(sorter);
   const row = d => {
     const mine = itemsFor(d);
-    const range = d.validFrom||d.validTo ? `${fmtDate(d.validFrom)}–${fmtDate(d.validTo)}` : "";
-    const upcoming = d.validFrom && d.validFrom > t;
+    const range = d.validFrom||d.validTo ? `${fmtDate(d.validFrom)} – ${fmtDate(d.validTo)}` : "";
     return `<div class="row deal-row ${mine.length?"mine":""}">
       <div class="main">
         <div class="name">${esc(d.product)}</div>
-        <div class="meta">${dealTag(d)}${d.unit?` <span>${esc(d.unit)}</span>`:""}${range?` · ${upcoming?"ab ":""}${range}`:""}${d.condition?` · ${esc(d.condition)}`:""}</div>
+        <div class="meta">${dealTag(d, mine.length===1?mine[0]:null)}${d.unit?` <span>${esc(d.unit)}</span>`:""}${range?` · ${range}`:""}${d.condition?` · ${esc(d.condition)}`:""}</div>
         ${d.categories&&d.categories.length?`<div class="meta">Gilt für: ${esc(d.categories.join(", "))}</div>`:""}
         ${mine.length?`<div class="meta"><b>Passt zu: ${mine.map(i=>esc(i.name)).join(", ")}</b></div>`:""}
       </div>
@@ -284,22 +373,52 @@ function renderAktionen(){
         </div>
       </form>
     </details>
-    <p class="note" style="margin:0">Preise ohne Gewähr. Vor dem Einkauf bitte im Flugblatt oder in der App des Händlers prüfen.${old.length?` ${old.length} abgelaufene Aktion(en) ausgeblendet.`:""}</p>`;
+    <p class="note" style="margin:0 4px">Preise ohne Gewähr. Vor dem Einkauf bitte im Flugblatt oder in der App des Händlers prüfen.${old.length?` ${old.length} abgelaufene Aktion(en) ausgeblendet.`:""}</p>`;
 }
-function updatedLine(){
-  const m = S.meta;
-  if (!m || !m.lastRun) return `<p class="note" style="margin:0">Aktionen werden automatisch zweimal pro Woche aktualisiert.</p>`;
-  return `<p class="note" style="margin:0">Automatisch aktualisiert: ${esc(fmtStamp(m.lastRun))}${m.nextRun?` · nächste Prüfung ${esc(fmtStamp(m.nextRun))}`:""}${m.summary?`<br>${esc(m.summary)}`:""}</p>`;
+
+/* ---------- Kochen: Rezepte → Liste, Ideen aus Aktionen ---------- */
+function ingList(key, ings){
+  return `<div class="ings">${ings.map((g,ix)=>{
+    const have = findItem(g.name); const inStock = have && !needs(have);
+    const checked = g.checked ?? (!inStock && !g.basis);
+    return `<label class="ing"><input type="checkbox" data-ing="${key}:${ix}" ${checked?"checked":""}><span>${esc(g.name)}</span>${inStock?`<span class="have">im Vorrat</span>`:have?`<span class="have" style="color:var(--low);background:var(--low-bg)">schon auf der Liste</span>`:""}<span class="q">${esc(g.qty||"")}</span></label>`;
+  }).join("")}</div>`;
 }
+function ideaCard(d, ix){
+  return `<div class="card"><h3>${esc(d.title)}</h3>${d.why?`<div class="why">${esc(d.why)}</div>`:""}
+    ${ingList("idea"+ix, d.ingredients||[])}
+    <div class="row-actions"><button class="btn" data-act="apply" data-key="idea${ix}" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button></div></div>`;
+}
+function renderKochen(){
+  const busy = S.busy;
+  const noAI = S.sample===null && S.live;
+  let h = `<form class="add" data-form="recipe">
+      <input id="r-dish" name="dish" placeholder="Was wollt ihr kochen? z. B. Lasagne für 4" aria-label="Gericht" required ${noAI?"disabled":""}>
+      <button class="btn" ${noAI||busy?"disabled":""}>${busy==="recipe"?'<span class="spin"></span>':"Zutaten"}</button>
+      <div class="opts note">Claude erstellt die Zutatenliste und gleicht sie mit eurem Vorrat ab. Was ihr schon habt, bleibt abgewählt.</div>
+    </form>`;
+  if (S.recipe) h += `<div class="card"><h3>${esc(S.recipe.title)}</h3>${ingList("recipe", S.recipe.ingredients)}
+      <div class="row-actions"><button class="btn" data-act="apply" data-key="recipe" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button><button class="btn ghost" data-act="clear-recipe">Verwerfen</button></div></div>`;
+  const ideas = S.ideas;
+  h += `<div class="group"><h2><span>Diese Woche günstig kochen</span><span>${ideas&&ideas.week?esc(ideas.week):""}</span></h2>
+    ${ideas&&ideas.dishes&&ideas.dishes.length ? `<div class="panel" style="gap:12px">${ideas.dishes.map(ideaCard).join("")}</div>` : `<div class="empty">Jeden Montag schlägt Claude hier 3 Gerichte vor, die zu den aktuellen Aktionen passen.</div>`}
+    <div class="row-actions" style="margin-top:10px"><button class="btn ghost" data-act="ideas" ${noAI||busy?"disabled":""}>${busy==="ideas"?'<span class="spin"></span> Denke nach …':"Jetzt neue Vorschläge holen"}</button>${ideas&&ideas.at?`<span class="note">Stand: ${esc(fmtStamp(ideas.at))}</span>`:""}</div>
+  </div>`;
+  if (noAI) h += `<p class="note" style="margin:0 4px">Die Rezept-Hilfe ist in dieser Ansicht nicht verfügbar. In der Claude-App oder im Browser angemeldet funktioniert sie.</p>`;
+  $("p-kochen").innerHTML = h;
+}
+
 function renderAlert(){
   const hits = S.items.filter(i=>dealsFor(i).some(isNow));
   const soon = S.items.filter(i=>!hits.includes(i) && dealsFor(i).length);
+  const due = S.items.filter(i=>effStatus(i)==="faellig");
   const el = $("alert");
   if (!hits.length && !soon.length){ el.hidden = true; return; }
   const list = arr => esc(arr.slice(0,4).map(i=>i.name).join(", ")) + (arr.length>4?" …":"");
-  const now = hits.length ? `<b>${hits.length} eurer Produkte ${hits.length===1?"ist":"sind"} gerade in Aktion:</b> ${list(hits)}` : "";
-  const later = soon.length ? `${now?"<br>":""}<b>Bald in Aktion:</b> ${list(soon)}` : "";
-  el.innerHTML = `<span>${now}${later}</span><button data-act="goto-aktionen">Ansehen</button>`;
+  const parts = [];
+  if (hits.length) parts.push(`<b>${hits.length} eurer Produkte ${hits.length===1?"ist":"sind"} gerade in Aktion:</b> ${list(hits)}`);
+  if (soon.length) parts.push(`<b>Bald in Aktion:</b> ${list(soon)}`);
+  el.innerHTML = `<span>${parts.join("<br>")}</span><button data-act="goto-aktionen">Ansehen</button>`;
   el.hidden = false;
 }
 function render(){
@@ -307,61 +426,146 @@ function render(){
   $("c-liste").textContent = S.items.filter(needs).length || "";
   $("c-vorrat").textContent = S.items.length || "";
   $("c-aktionen").textContent = activeDeals().length || "";
-  for (const t of ["liste","vorrat","aktionen"]){
+  for (const t of ["liste","vorrat","aktionen","kochen"]){
     $("p-"+t).hidden = S.tab!==t;
     $("tab-"+t).setAttribute("aria-selected", S.tab===t);
   }
-  ({liste:renderListe, vorrat:renderVorrat, aktionen:renderAktionen})[S.tab]();
+  ({liste:renderListe, vorrat:renderVorrat, aktionen:renderAktionen, kochen:renderKochen})[S.tab]();
 }
-/* Datum rollt weiter: abgelaufene Aktionen verschwinden, kommende rücken nach "Jetzt gültig" */
 let lastDay = today();
 setInterval(()=>{ if (today()!==lastDay){ lastDay=today(); if(!S.editing) render(); } }, 60000);
 
 /* ---------- Schreiben ---------- */
 async function write(fn, okMsg){
-  if (!S.db){ toast("Keine Verbindung zur gemeinsamen Liste."); return; }
-  try { await fn(); if(okMsg) toast(okMsg); }
+  if (!S.db){ toast("Keine Verbindung zur gemeinsamen Liste."); return false; }
+  try { await fn(); if(okMsg) toast(okMsg); return true; }
   catch(e){
-    if (e && e.code==="invalid_argument"){ S.canWrite=false; toast("Ihr könnt diese Liste nur ansehen. Der Besitzer muss euch als Mitwirkende freigeben."); render(); }
+    if (e && e.code==="invalid_argument"){ S.canWrite=false; toast("Ihr könnt diese Liste nur ansehen. Der Besitzer muss euch als Editor freigeben."); render(); }
     else if (e && e.code==="quota_exceeded") toast("Die Liste ist voll. Löscht alte Aktionen oder Produkte.");
     else toast("Speichern hat nicht geklappt. Bitte nochmal versuchen.");
+    return false;
   }
 }
 const stamp = () => ({updatedAt: Date.now(), updatedBy: S.me || null});
 const itemRef = id => S.db.collection("items").doc(id);
 
+async function applyIngredients(key){
+  const src = key==="recipe" ? S.recipe?.ingredients : S.ideas?.dishes?.[Number(key.slice(4))]?.ingredients;
+  if (!src) return;
+  const picked = src.filter((g,ix)=>{ const cb=document.querySelector(`[data-ing="${key}:${ix}"]`); return cb && cb.checked; });
+  if (!picked.length){ toast("Nichts ausgewählt."); return; }
+  let n = 0;
+  for (const g of picked){
+    const have = findItem(g.name);
+    const ok = have
+      ? (needs(have) ? true : await write(()=>itemRef(have.id).update({status:"leer", ...stamp()})))
+      : await write(()=>S.db.collection("items").add({name:g.name, kind:"rotation", category:CATS.includes(g.category)?g.category:"Sonstiges", status:"leer", qty:g.qty||"", note:"", keywords:[], ...stamp()}));
+    if (ok) n++;
+  }
+  toast(`${n} Zutat${n===1?"":"en"} auf der Einkaufsliste`);
+  if (key==="recipe") S.recipe = null;
+  render();
+}
+
+function aiError(e){
+  if (!e) return toast("Das hat nicht geklappt.");
+  if (e.code==="not_granted"){ S.sample=null; toast("Die Rezept-Hilfe wurde nicht erlaubt."); }
+  else if (e.code==="rate_limited") toast("Gerade zu viele Anfragen. Bitte in ein paar Minuten nochmal.");
+  else toast("Claude konnte gerade keine Antwort liefern. Bitte nochmal versuchen.");
+}
+const stockSummary = () => S.items.map(i=>`${i.name} (${effStatus(i)==="da"?"da":"fehlt"})`).join(", ");
+async function askRecipe(dish){
+  if (!S.sample || S.busy) return;
+  S.busy="recipe"; render();
+  try{
+    const res = await S.sample.json(
+`Du hilfst einem Paar in Österreich beim Einkaufen. Erstelle die Zutatenliste für: "${dish}".
+Ihr Vorrat: ${stockSummary() || "leer"}.
+Antworte NUR mit JSON in genau dieser Form:
+{"title":"<Gericht, kurz>","ingredients":[{"name":"<Zutat, österreichischer Begriff, z. B. Topfen, Paradeiser, Schlagobers>","qty":"<Menge>","category":"<eine aus: ${CATS.join(" | ")}>","basis":<true bei Salz, Pfeffer, Öl, Wasser, Gewürzen, sonst false>}]}
+Höchstens 18 Zutaten, auf Deutsch.`, {modelTier:"quick"});
+    if (!res || !Array.isArray(res.ingredients)) throw {code:"bad"};
+    S.recipe = {title: String(res.title||dish).slice(0,80), ingredients: res.ingredients.slice(0,18).map(g=>({name:String(g.name||"").slice(0,60), qty:String(g.qty||"").slice(0,30), category:g.category, basis:!!g.basis})).filter(g=>g.name)};
+  }catch(e){ aiError(e); }
+  S.busy=null; render();
+}
+async function askIdeas(){
+  if (!S.sample || S.busy) return;
+  S.busy="ideas"; render();
+  const deals = activeDeals().map(d=>`${STORES[d.store]}: ${d.product}${d.price!=null&&d.price!==""?" "+fmtEur(d.price):d.discount?" −"+d.discount+"%":""} (${d.validFrom||"?"} bis ${d.validTo||"?"})`).join("\n");
+  try{
+    const res = await S.sample.json(
+`Schlage einem Paar in Österreich 3 alltagstaugliche Abendessen für diese Woche vor, die möglichst die aktuellen Supermarkt-Aktionen nutzen und den Vorrat verwenden.
+Aktionen:
+${deals || "(keine eingetragen)"}
+Vorrat: ${stockSummary() || "leer"}.
+Antworte NUR mit JSON:
+{"dishes":[{"title":"<Gericht>","why":"<ein Satz: welche Aktion genutzt wird, bei welchem Händler>","ingredients":[{"name":"<Zutat, österreichischer Begriff>","qty":"<Menge für 2>","category":"<eine aus: ${CATS.join(" | ")}>","basis":<true bei Salz/Pfeffer/Öl/Gewürzen>}]}]}
+Höchstens 12 Zutaten pro Gericht, auf Deutsch.`, {modelTier:"default"});
+    if (!res || !Array.isArray(res.dishes)) throw {code:"bad"};
+    const dishes = res.dishes.slice(0,3).map(d=>({title:String(d.title||"").slice(0,80), why:String(d.why||"").slice(0,200),
+      ingredients:(d.ingredients||[]).slice(0,12).map(g=>({name:String(g.name||"").slice(0,60), qty:String(g.qty||"").slice(0,30), category:g.category, basis:!!g.basis})).filter(g=>g.name)}));
+    const kw = (()=>{ const d=new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); return Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/86400000+1)/7); })();
+    const doc = {week:`KW ${kw}`, at:new Date().toISOString(), dishes, by:S.me||null};
+    S.ideas = doc;
+    if (S.canWrite) await write(()=>S.db.doc("meta/ideas").set(doc));
+  }catch(e){ aiError(e); }
+  S.busy=null; render();
+}
+
 document.addEventListener("click", e=>{
-  const b = e.target.closest("[data-act],[data-tab],[data-store]"); if(!b) return;
+  const b = e.target.closest("[data-act],[data-tab],[data-store],[data-shop]"); if(!b) return;
   if (b.dataset.tab){ S.tab=b.dataset.tab; S.editing=null; try{localStorage.setItem("vorrat-tab",S.tab)}catch(_){} render(); return; }
   if (b.dataset.store){ S.storeFilter=b.dataset.store; render(); return; }
+  if (b.dataset.shop){ S.shopStore=b.dataset.shop; try{localStorage.setItem("vorrat-shop",S.shopStore)}catch(_){} render(); return; }
   const id = b.dataset.id, it = S.items.find(i=>i.id===id);
   switch(b.dataset.act){
     case "goto-aktionen": S.tab="aktionen"; render(); break;
-    case "cycle": if(it) write(()=>itemRef(id).update({status:NEXT[it.status]||"knapp",...stamp()})); break;
-    case "bought": if(it) write(()=>itemRef(id).update({status:"da",lastBought:today(),...stamp()}), `${it.name} abgehakt`); break;
+    case "cycle": if(it){
+      const nx = NEXT[effStatus(it)]||"knapp";
+      write(()=>itemRef(id).update(nx==="da" ? {status:"da", lastBought:today(), ...stamp()} : {status:nx, ...stamp()}));
+    } break;
+    case "bought": if(it){
+      const hist = (it.history||[]).filter(x=>x.d!==today()).concat([{d:today(), by:S.me||null, t:Date.now()}]).slice(-12);
+      write(()=>itemRef(id).update({status:"da", lastBought:today(), history:hist, ...stamp()}), `${it.name} abgehakt`);
+    } break;
     case "edit": S.editing = S.editing===id?null:id; render(); break;
     case "delete": if(it){ S.editing=null; write(()=>itemRef(id).delete(), `${it.name} gelöscht`); } break;
     case "deldeal": write(()=>S.db.collection("deals").doc(id).delete()); break;
+    case "apply": applyIngredients(b.dataset.key); break;
+    case "clear-recipe": S.recipe=null; render(); break;
+    case "ideas": askIdeas(); break;
   }
 });
+document.addEventListener("change", e=>{
+  const cb = e.target.closest("[data-ing]"); if(!cb) return;
+  const [key, ix] = cb.dataset.ing.split(":");
+  const src = key==="recipe" ? S.recipe?.ingredients : S.ideas?.dishes?.[Number(key.slice(4))]?.ingredients;
+  if (src && src[ix]) src[ix].checked = cb.checked;
+});
+document.addEventListener("focusout", ()=>{ setTimeout(()=>{ const ae=document.activeElement; if(S.pendingRender && !(ae && ae.closest && ae.closest("form"))){ S.pendingRender=false; render(); } }, 0); });
 document.addEventListener("submit", e=>{
   const f = e.target.closest("form[data-form]"); if(!f) return;
   e.preventDefault();
   const v = Object.fromEntries(new FormData(f));
   if (f.dataset.form==="add"){
     const name = v.name.trim(); if(!name) return;
-    write(()=>S.db.collection("items").add({name, kind:v.kind, category:v.category, status:v.status, keywords:[], qty:"", ...stamp()}), `${name} hinzugefügt`);
+    write(()=>S.db.collection("items").add({name, kind:v.kind, category:v.category, status:v.status, keywords:[], qty:"", note:"", ...stamp()}), `${name} hinzugefügt`);
     f.reset();
   } else if (f.dataset.form==="edit"){
     const id=f.dataset.id;
     S.editing=null;
-    write(()=>itemRef(id).update({name:v.name.trim(), qty:v.qty.trim(), kind:v.kind, category:v.category, keywords:v.keywords.split(",").map(s=>s.trim()).filter(Boolean), ...stamp()}), "Gespeichert");
+    const every = parseInt(v.everyDays,10);
+    write(()=>itemRef(id).update({name:v.name.trim(), qty:v.qty.trim(), note:v.note.trim(), kind:v.kind, category:v.category,
+      normalPrice:num(v.normalPrice), everyDays: every>0 ? every : null,
+      keywords:v.keywords.split(",").map(s=>s.trim()).filter(Boolean), ...stamp()}), "Gespeichert");
   } else if (f.dataset.form==="deal"){
-    const num = s => s ? Number(String(s).replace(",", ".")) : null;
     const product=v.product.trim(); if(!product) return;
     const words = norm(product).split(/[^a-z0-9]+/).filter(w=>w.length>=4);
-    write(()=>S.db.collection("deals").add({store:v.store, product, price:num(v.price), was:num(v.was), validFrom:v.validFrom||null, validTo:v.validTo||null, condition:v.condition.trim(), keywords:words, source:"selbst eingetragen", addedBy:S.me||null, addedAt:Date.now()}), "Aktion gespeichert");
+    write(()=>S.db.collection("deals").add({store:v.store, product, price:num(v.price), was:num(v.was), validFrom:v.validFrom||null, validTo:v.validTo||null, condition:v.condition.trim(), keywords:words, categories:[], source:"selbst eingetragen", addedBy:S.me||null, addedAt:Date.now()}), "Aktion gespeichert");
     f.reset();
+  } else if (f.dataset.form==="recipe"){
+    const dish = v.dish.trim(); if(dish) askRecipe(dish);
   }
 });
 
@@ -371,13 +575,14 @@ document.addEventListener("submit", e=>{
   const d = new Date().toLocaleDateString("de-AT",{weekday:"long",day:"numeric",month:"long"});
   $("greet").textContent = `${g} · ${d}`;
 })();
+
 /* ---------- Verbindung ---------- */
 function setSync(live, text){ $("dot").classList.toggle("live", live); $("syncText").textContent = text; }
 render();
 (async()=>{
   const timer = setTimeout(()=>{ if(!S.live) setSync(false,"Liste gerade nicht erreichbar"); }, 10000);
-  const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
-  S.user = user;
+  const [db, user, sample] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("sample")]);
+  S.user = user; S.sample = sample;
   if (!db){ clearTimeout(timer); setSync(false,"Bitte anmelden, um die gemeinsame Liste zu sehen"); return; }
   S.db = db;
   if (user){
@@ -386,9 +591,9 @@ render();
   }
   const resolveNames = async () => {
     if(!user) return;
-    const ids = [...new Set(S.items.map(i=>i.updatedBy).filter(Boolean))];
+    const ids = [...new Set(S.items.flatMap(i=>[i.updatedBy, ...(i.history||[]).map(x=>x.by)]).filter(id=>id && id!==S.me && !(id in S.names)))];
     if(!ids.length) return;
-    try{ const ps = await user.profiles(ids); for(const id of ids){ const n = ps[id]?.name; S.names[id] = id===S.me ? "du" : (n ? n.split(" ")[0] : ""); } render(); }catch(_){}
+    try{ const ps = await user.profiles(ids); for(const id of ids){ const n = ps[id]?.name; S.names[id] = n ? n.split(" ")[0] : ""; } render(); }catch(_){}
   };
   let firstItems = true;
   db.collection("items").onSnapshot(snap=>{
@@ -406,8 +611,11 @@ render();
     }
     firstItems = false;
     S.items = snap.docs.map(d=>({id:d.id, ...d.data()}));
-    render(); resolveNames();
-  }, err=>{ clearTimeout(timer); setSync(false,"Verbindung verloren – Seite neu öffnen"); });
+    if (S.editing && !S.items.some(i=>i.id===S.editing)) S.editing=null;
+    const ae = document.activeElement;
+    if (ae && (ae.tagName==="INPUT" || ae.tagName==="SELECT") && ae.closest("form") && (ae.value || S.editing)) S.pendingRender = true; else render();
+    resolveNames();
+  }, ()=>{ clearTimeout(timer); setSync(false,"Verbindung verloren – Seite neu öffnen"); });
   db.collection("deals").onSnapshot(snap=>{
     const prev = S.seenDeals;
     S.deals = snap.docs.map(d=>({id:d.id, ...d.data()}));
@@ -421,5 +629,6 @@ render();
     render();
   }, ()=>{});
   db.doc("meta/status").onSnapshot(s=>{ S.meta = s.exists ? s.data() : null; if(S.tab==="aktionen") render(); }, ()=>{});
+  db.doc("meta/ideas").onSnapshot(s=>{ if(S.busy!=="ideas"){ S.ideas = s.exists ? JSON.parse(JSON.stringify(s.data())) : null; if(S.tab==="kochen") render(); } }, ()=>{});
 })();
 </script>
