@@ -131,6 +131,14 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88
 .intro h3{font-family:var(--f-display);margin:0;font-size:1.1rem}
 .intro ol{margin:0;padding-left:20px;display:grid;gap:4px}
 .mini{background:none;border:0;color:var(--accent);font:inherit;font-size:.74rem;font-weight:700;cursor:pointer;padding:0;text-align:left}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);border-radius:99px;padding:4px;box-shadow:var(--shadow);gap:4px}
+.seg button{border:0;background:none;font:inherit;font-weight:700;color:var(--muted);padding:9px;border-radius:99px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.seg button[aria-pressed="true"] .note{color:inherit;opacity:.8}
+textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0;width:100%;resize:vertical}
+textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+ol.steps{margin:0;padding-left:22px;display:grid;gap:8px;line-height:1.55}
+ol.steps li::marker{color:var(--accent);font-weight:700}
 .edit label{font-size:.74rem;color:var(--muted);display:grid;gap:3px}
 </style>
 
@@ -178,7 +186,7 @@ const NEXT = {da:"knapp",knapp:"leer",leer:"da",faellig:"leer"};
 const ORDER = {leer:0,knapp:1,faellig:2,da:3};
 
 const S = {items:[], deals:[], db:null, user:null, sample:null, me:null, tab:"liste", storeFilter:"alle", shopStore:"alle",
-  editing:null, live:false, compare:null, requests:[], q:"", introSeen:false, canWrite:true, names:{}, seenDeals:null, meta:null, ideas:null, recipe:null, busy:null};
+  editing:null, live:false, cookTab:"jetzt", recipes:[], fromStock:null, openRecipe:null, servings:{}, checks:{}, draft:"", confirmDel:null, mcp:null, compare:null, requests:[], q:"", introSeen:false, canWrite:true, names:{}, seenDeals:null, meta:null, ideas:null, recipe:null, busy:null};
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const norm = s => String(s||"").toLowerCase().replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
@@ -500,38 +508,6 @@ function renderAktionen(){
     <p class="note" style="margin:0 4px">Preise ohne Gewähr. Vor dem Einkauf bitte im Flugblatt oder in der App des Händlers prüfen.${old.length?` ${old.length} abgelaufene Aktion(en) ausgeblendet.`:""}</p>`;
 }
 
-/* ---------- Kochen: Rezepte → Liste, Ideen aus Aktionen ---------- */
-function ingList(key, ings){
-  return `<div class="ings">${ings.map((g,ix)=>{
-    const have = findItem(g.name); const inStock = have && !needs(have);
-    const checked = g.checked ?? (!inStock && !g.basis);
-    return `<label class="ing"><input type="checkbox" data-ing="${key}:${ix}" ${checked?"checked":""}><span>${esc(g.name)}</span>${inStock?`<span class="have">im Vorrat</span>`:have?`<span class="have" style="color:var(--low);background:var(--low-bg)">schon auf der Liste</span>`:""}<span class="q">${esc(g.qty||"")}</span></label>`;
-  }).join("")}</div>`;
-}
-function ideaCard(d, ix){
-  return `<div class="card"><h3>${esc(d.title)}</h3>${d.why?`<div class="why">${esc(d.why)}</div>`:""}
-    ${ingList("idea"+ix, d.ingredients||[])}
-    <div class="row-actions"><button class="btn" data-act="apply" data-key="idea${ix}" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button></div></div>`;
-}
-function renderKochen(){
-  const busy = S.busy;
-  const noAI = S.sample===null && S.live;
-  let h = `<form class="add" data-form="recipe">
-      <input id="r-dish" name="dish" placeholder="Was wollt ihr kochen? z. B. Lasagne für 4" aria-label="Gericht" required ${noAI?"disabled":""}>
-      <button class="btn" ${noAI||busy?"disabled":""}>${busy==="recipe"?'<span class="spin"></span>':"Zutaten"}</button>
-      <div class="opts note">Claude erstellt die Zutatenliste und gleicht sie mit eurem Vorrat ab. Was ihr schon habt, bleibt abgewählt.</div>
-    </form>`;
-  if (S.recipe) h += `<div class="card"><h3>${esc(S.recipe.title)}</h3>${ingList("recipe", S.recipe.ingredients)}
-      <div class="row-actions"><button class="btn" data-act="apply" data-key="recipe" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button><button class="btn ghost" data-act="clear-recipe">Verwerfen</button></div></div>`;
-  const ideas = S.ideas;
-  h += `<div class="group"><h2><span>Diese Woche günstig kochen</span><span>${ideas&&ideas.week?esc(ideas.week):""}</span></h2>
-    ${ideas&&ideas.dishes&&ideas.dishes.length ? `<div class="panel" style="gap:12px">${ideas.dishes.map(ideaCard).join("")}</div>` : `<div class="empty">Jeden Montag schlägt Claude hier 3 Gerichte vor, die zu den aktuellen Aktionen passen.</div>`}
-    <div class="row-actions" style="margin-top:10px"><button class="btn ghost" data-act="ideas" ${noAI||busy?"disabled":""}>${busy==="ideas"?'<span class="spin"></span> Denke nach …':"Jetzt neue Vorschläge holen"}</button>${ideas&&ideas.at?`<span class="note">Stand: ${esc(fmtStamp(ideas.at))}</span>`:""}</div>
-  </div>`;
-  if (noAI) h += `<p class="note" style="margin:0 4px">Die Rezept-Hilfe ist in dieser Ansicht nicht verfügbar. In der Claude-App oder im Browser angemeldet funktioniert sie.</p>`;
-  $("p-kochen").innerHTML = h;
-}
-
 function renderAlert(){
   const hits = S.items.filter(i=>dealsFor(i).some(isNow));
   const soon = S.items.filter(i=>!hits.includes(i) && dealsFor(i).length);
@@ -547,7 +523,7 @@ function renderAlert(){
 }
 function softRender(){
   const ae = document.activeElement;
-  if (ae && (ae.tagName==="INPUT" || ae.tagName==="SELECT") && (ae.closest("form") || ae.id==="v-search") && (ae.value || S.editing)) S.pendingRender = true; else render();
+  if (ae && (ae.tagName==="INPUT" || ae.tagName==="SELECT" || ae.tagName==="TEXTAREA") && (ae.closest("form") || ae.id==="v-search") && (ae.value || S.editing)) S.pendingRender = true; else render();
 }
 function render(){
   renderAlert();
@@ -578,21 +554,139 @@ async function write(fn, okMsg){
 const stamp = () => ({updatedAt: Date.now(), updatedBy: S.me || null});
 const itemRef = id => S.db.collection("items").doc(id);
 
+/* ---------- Kochen: Jetzt kochbar · Rezeptbuch ---------- */
+const RECIPE_JOB = "trig_018k2jaCkqz6qo6c8A8dKEoR";
+const SRC_LABEL = {youtube:"YouTube", instagram:"Instagram", web:"Web", manual:"Eigenes", claude:"Claude"};
+const fmtAmt = n => { const r = Math.round(n*100)/100; return String(r).replace(".", ","); };
+function qtyText(g, f=1){
+  if (g.amount!=null && g.amount!=="" && isFinite(Number(g.amount))) return `${fmtAmt(Number(g.amount)*f)} ${g.unit||""}`.trim();
+  return g.qty || g.unit || "";
+}
+function stockOf(g){
+  if (g.basis) return "basis";
+  const have = findItem(g.name);
+  if (!have) return "fehlt";
+  return needs(have) ? "liste" : "da";
+}
+const missingOf = r => (r.ingredients||[]).filter(g => { const s=stockOf(g); return s==="fehlt" || s==="liste"; });
+function getIngs(key){
+  if (key.startsWith("rb:")) return S.recipes.find(r=>r.id===key.slice(3))?.ingredients;
+  if (key.startsWith("st:")) return S.fromStock?.dishes?.[Number(key.slice(3))]?.ingredients;
+  if (key.startsWith("idea")) return S.ideas?.dishes?.[Number(key.slice(4))]?.ingredients;
+  return null;
+}
+function ingList(key, ings, factor=1){
+  return `<div class="ings">${ings.map((g,ix)=>{
+    const st = stockOf(g);
+    const def = st==="fehlt";
+    const checked = S.checks[key+":"+ix] ?? def;
+    const badge = st==="da" ? `<span class="have">im Vorrat</span>` : st==="liste" ? `<span class="have" style="color:var(--low);background:var(--low-bg)">auf der Liste</span>` : st==="basis" ? `<span class="have" style="color:var(--muted);background:var(--bg)">Basis</span>` : "";
+    return `<label class="ing"><input type="checkbox" data-ing="${esc(key)}:${ix}" ${checked?"checked":""}><span>${esc(g.name)}</span>${badge}<span class="q">${esc(qtyText(g,factor))}</span></label>`;
+  }).join("")}</div>`;
+}
+function stockBadge(r){
+  if (r.status!=="fertig") return "";
+  const m = missingOf(r).length;
+  return m===0 ? `<span class="have">alles da</span>` : `<span class="have" style="color:var(--warn);background:var(--warn-bg)">${m} fehlt${m===1?"":"en"}</span>`;
+}
+function recipeRow(r){
+  const src = SRC_LABEL[r.source] || "";
+  const pend = r.status==="wird erstellt", err = r.status==="fehler";
+  return `<div class="row" data-act="open-recipe" data-id="${esc(r.id)}" style="cursor:pointer">
+    <div class="main">
+      <div class="name">${esc(r.title || r.sourceUrl || "Rezept")}</div>
+      <div class="meta">${src?`<span class="kind">${esc(src)}</span>`:""}${r.time?` · ${esc(r.time)}`:""}${r.servings?` · ${esc(r.servings)} Port.`:""} ${pend?'<span class="soon"><span class="spin"></span> wird erstellt …</span>':""}${err?'<span class="have" style="color:var(--warn);background:var(--warn-bg)">nicht lesbar</span>':""} ${stockBadge(r)}</div>
+    </div><span class="icon-btn" aria-hidden="true">›</span></div>`;
+}
+function recipeDetail(r){
+  const base = Number(r.servings)||2;
+  const serv = S.servings[r.id] || base;
+  const f = serv/base;
+  const miss = missingOf(r);
+  if (r.status!=="fertig") return `<div class="card"><h3>${esc(r.title||"Rezept wird erstellt")}</h3>
+    ${r.sourceUrl?`<div class="links"><a href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">Original ansehen ↗</a></div>`:""}
+    ${r.status==="fehler"?`<div class="est">${esc(r.error||"Der Link konnte nicht gelesen werden.")}</div>
+      <div class="row-actions"><button class="btn" data-act="retry-recipe" data-id="${esc(r.id)}">Beschreibung einfügen &amp; neu erstellen</button></div>`
+      :`<div class="note"><span class="spin"></span> Claude liest das Video und schreibt das Rezept. Das dauert ein paar Minuten, ihr bekommt dann eine Nachricht.</div>`}
+    <div class="row-actions"><button class="btn ghost" data-act="close-recipe">Zurück</button>${delBtn(r)}</div></div>`;
+  return `<div class="card">
+    <div class="row-actions" style="justify-content:space-between"><button class="mini" data-act="close-recipe">‹ Rezeptbuch</button>${r.sourceUrl?`<a class="mini" style="text-decoration:none" href="${esc(r.sourceUrl)}" target="_blank" rel="noopener">${esc(SRC_LABEL[r.source]||"Original")} ansehen ↗</a>`:""}</div>
+    <h3 style="font-size:1.4rem">${esc(r.title)}</h3>
+    <div class="meta">${esc([r.creator, r.time, ...(r.tags||[])].filter(Boolean).join(" · "))}</div>
+    <div class="row-actions"><span class="note">Portionen</span>
+      <button class="chip" data-act="serv" data-id="${esc(r.id)}" data-d="-1" aria-label="weniger Portionen">−</button>
+      <b style="min-width:24px;text-align:center;font-variant-numeric:tabular-nums">${serv}</b>
+      <button class="chip" data-act="serv" data-id="${esc(r.id)}" data-d="1" aria-label="mehr Portionen">+</button>
+      ${stockBadge(r)}</div>
+    <div class="group"><h2><span>Zutaten</span><span>${(r.ingredients||[]).length}</span></h2>${ingList("rb:"+r.id, r.ingredients||[], f)}</div>
+    ${miss.length?`<div class="row-actions"><button class="btn" data-act="apply" data-key="rb:${esc(r.id)}" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button></div>`:""}
+    <div class="group"><h2><span>Zubereitung</span><span></span></h2><ol class="steps">${(r.steps||[]).map(s=>`<li>${esc(s)}</li>`).join("")}</ol></div>
+    ${r.notes?`<div class="est">${esc(r.notes)}</div>`:""}
+    <div class="row-actions">${delBtn(r)}</div>
+  </div>`;
+}
+const delBtn = r => S.canWrite ? `<button class="btn ghost" data-act="del-recipe" data-id="${esc(r.id)}">${S.confirmDel===r.id?"Wirklich löschen?":"Löschen"}</button>` : "";
+function stockIdeaCard(d, ix){
+  return `<div class="card"><h3>${esc(d.title)}</h3>${d.why?`<div class="why">${esc(d.why)}</div>`:""}
+    <div class="meta">${d.time?esc(d.time)+" · ":""}${d.servings?esc(d.servings)+" Portionen":""}</div>
+    ${ingList("st:"+ix, d.ingredients||[])}
+    ${d.steps&&d.steps.length?`<details><summary>Zubereitung</summary><ol class="steps">${d.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol></details>`:""}
+    <div class="row-actions"><button class="btn ghost" data-act="save-stock" data-ix="${ix}" ${S.canWrite?"":"disabled"}>Ins Rezeptbuch</button></div></div>`;
+}
+function ideaCard(d, ix){
+  return `<div class="card"><h3>${esc(d.title)}</h3>${d.why?`<div class="why">${esc(d.why)}</div>`:""}
+    ${ingList("idea"+ix, d.ingredients||[])}
+    <div class="row-actions"><button class="btn" data-act="apply" data-key="idea${ix}" ${S.canWrite?"":"disabled"}>Ausgewählte auf die Liste</button></div></div>`;
+}
+function renderKochen(){
+  const busy = S.busy, noAI = S.sample===null && S.live;
+  const seg = `<div class="seg" role="tablist">
+      <button data-act="cook-tab" data-v="jetzt" aria-pressed="${S.cookTab==="jetzt"}">Jetzt kochbar</button>
+      <button data-act="cook-tab" data-v="buch" aria-pressed="${S.cookTab==="buch"}">Rezeptbuch <span class="note">${S.recipes.length||""}</span></button>
+    </div>`;
+  let h = seg;
+  const open = S.openRecipe && S.recipes.find(r=>r.id===S.openRecipe);
+  if (open){ $("p-kochen").innerHTML = seg + recipeDetail(open); return; }
+
+  if (S.cookTab==="jetzt"){
+    const done = S.recipes.filter(r=>r.status==="fertig").map(r=>({r, m:missingOf(r)}));
+    const ready = done.filter(x=>x.m.length===0), almost = done.filter(x=>x.m.length>0 && x.m.length<=2).sort((a,b)=>a.m.length-b.m.length);
+    h += `<div class="group"><h2><span>Aus eurem Rezeptbuch</span><span>${ready.length} kochbar</span></h2>
+      ${ready.length?`<div class="rows">${ready.map(x=>recipeRow(x.r)).join("")}</div>`:`<div class="empty">${S.recipes.length?"Für keines eurer Rezepte ist gerade alles da.":"Noch keine Rezepte gespeichert. Fügt im Rezeptbuch ein Reel oder Video ein."}</div>`}</div>`;
+    if (almost.length) h += `<div class="group"><h2><span>Fast: es fehlt nur wenig</span><span>${almost.length}</span></h2><div class="rows">${almost.map(x=>recipeRow(x.r).replace('</div><span class="icon-btn"', `<div class="meta">Fehlt: ${esc(x.m.map(g=>g.name).join(", "))}</div></div><span class="icon-btn"`)).join("")}</div></div>`;
+    const fs = S.fromStock;
+    h += `<div class="group"><h2><span>Ideen nur aus eurem Vorrat</span><span>${fs&&fs.at?esc(fmtStamp(fs.at)):""}</span></h2>
+      ${fs&&fs.dishes&&fs.dishes.length?`<div class="panel" style="gap:12px">${fs.dishes.map(stockIdeaCard).join("")}</div>`:`<div class="empty">Claude schaut, was ihr mit dem kochen könnt, was gerade daheim ist.</div>`}
+      <div class="row-actions" style="margin-top:10px"><button class="btn" data-act="from-stock" ${noAI||busy?"disabled":""}>${busy==="stock"?'<span class="spin"></span> Schaue in den Vorrat …':"Was kann ich jetzt kochen?"}</button></div>
+      <p class="note" style="margin:8px 4px 0">Tipp: Je vollständiger der Vorrat (auch Nudeln, Reis, Gewürze), desto besser passen die Vorschläge. Salz, Pfeffer, Öl und Gewürze gelten als vorhanden.</p></div>`;
+    const ideas = S.ideas;
+    if (ideas && ideas.dishes && ideas.dishes.length) h += `<details class="install"><summary>Diese Woche günstig kochen (${esc(ideas.week||"")})</summary><div class="panel" style="gap:12px;margin-top:10px">${ideas.dishes.map(ideaCard).join("")}</div></details>`;
+  } else {
+    h += `<form class="add" data-form="recipe" style="grid-template-columns:1fr">
+        <textarea id="r-input" name="input" rows="3" placeholder="Link zu Instagram-Reel oder YouTube-Video einfügen. Am besten die Beschreibung des Reels mitkopieren. Oder einfach ein Gericht eintippen, z. B. „Kaiserschmarrn“." aria-label="Link, Rezepttext oder Gericht" required>${esc(S.draft||"")}</textarea>
+        <div class="row-actions"><button class="btn" ${busy?"disabled":""}>${busy==="recipe"?'<span class="spin"></span> Erstelle Rezept …':"Rezept erstellen"}</button>
+        <span class="note">Mit Beschreibung: sofort fertig. Nur Link: Claude liest das Video im Hintergrund.</span></div>
+      </form>`;
+    const list = S.recipes.slice().sort((a,b)=>(b.at||0)-(a.at||0));
+    h += list.length ? `<div class="rows">${list.map(recipeRow).join("")}</div>` : `<div class="empty">Euer Rezeptbuch ist noch leer. So geht's: In Instagram oder YouTube auf „Teilen“, dann „Link kopieren“, und hier einfügen.</div>`;
+  }
+  $("p-kochen").innerHTML = h;
+}
+
 async function applyIngredients(key){
-  const src = key==="recipe" ? S.recipe?.ingredients : S.ideas?.dishes?.[Number(key.slice(4))]?.ingredients;
-  if (!src) return;
-  const picked = src.filter((g,ix)=>{ const cb=document.querySelector(`[data-ing="${key}:${ix}"]`); return cb && cb.checked; });
+  const src = getIngs(key); if (!src) return;
+  const picked = src.filter((g,ix)=>{ const cb=document.querySelector(`[data-ing="${CSS.escape(key)}:${ix}"]`); return cb && cb.checked; });
   if (!picked.length){ toast("Nichts ausgewählt."); return; }
   let n = 0;
   for (const g of picked){
     const have = findItem(g.name);
     const ok = have
       ? (needs(have) ? true : await write(()=>itemRef(have.id).update({status:"leer", ...stamp()})))
-      : await write(()=>S.db.collection("items").add({name:g.name, kind:"rotation", category:CATS.includes(g.category)?g.category:"Sonstiges", status:"leer", qty:g.qty||"", note:"", keywords:[], ...stamp()}));
+      : await write(()=>S.db.collection("items").add({name:g.name, kind:"rotation", category:CATS.includes(g.category)?g.category:"Sonstiges", status:"leer", qty:qtyText(g), note:"", keywords:[], ...stamp()}));
     if (ok) n++;
   }
+  for (const k of Object.keys(S.checks)) if (k.startsWith(key+":")) delete S.checks[k];
   toast(`${n} Zutat${n===1?"":"en"} auf der Einkaufsliste`);
-  if (key==="recipe") S.recipe = null;
   render();
 }
 
@@ -603,46 +697,77 @@ function aiError(e){
   else toast("Claude konnte gerade keine Antwort liefern. Bitte nochmal versuchen.");
 }
 const stockSummary = () => S.items.map(i=>`${i.name} (${effStatus(i)==="da"?"da":"fehlt"})`).join(", ");
-async function askRecipe(dish){
-  if (!S.sample || S.busy) return;
+const ING_SCHEMA = `{"name":"<Zutat, österreichischer Begriff, z. B. Topfen, Paradeiser, Schlagobers, Faschiertes>","amount":<Zahl oder null>,"unit":"<g|kg|ml|l|EL|TL|Stk|Prise|Bund|Pkg>","category":"<eine aus: ${CATS.join(" | ")}>","basis":<true bei Salz, Pfeffer, Öl, Wasser, Gewürzen, sonst false>}`;
+const cleanIng = g => ({name:String(g.name||"").slice(0,60), amount:num(g.amount), unit:String(g.unit||"").slice(0,12), category:CATS.includes(g.category)?g.category:"Sonstiges", basis:!!g.basis});
+const cleanRecipe = r => ({title:String(r.title||"Rezept").slice(0,90), servings:Math.max(1,Math.min(20,parseInt(r.servings,10)||2)), time:String(r.time||"").slice(0,20),
+  ingredients:(r.ingredients||[]).slice(0,30).map(cleanIng).filter(g=>g.name), steps:(r.steps||[]).slice(0,20).map(s=>String(s).slice(0,500)),
+  notes:String(r.notes||"").slice(0,400), tags:(r.tags||[]).slice(0,5).map(t=>String(t).slice(0,20)), creator:String(r.creator||"").slice(0,60)});
+const URL_RE = /https?:\/\/[^\s]+/i;
+const platformOf = u => /instagram\.com/i.test(u) ? "instagram" : /youtu\.?be/i.test(u) ? "youtube" : "web";
+
+async function fireRecipeJob(id){
+  if (!S.mcp) return false;
+  try{
+    await S.mcp.callTool("Claude Code Remote", "fire_trigger", {trigger_id: RECIPE_JOB, text: `Neues Rezept zum Erstellen: recipes/${id}`});
+    return true;
+  }catch(e){ return false; }
+}
+async function createRecipe(input){
+  if (S.busy) return;
+  const m = input.match(URL_RE); const url = m ? m[0].replace(/[).,]+$/,"") : null;
+  const text = (url ? input.replace(m[0], "") : input).trim();
+  S.draft = "";
+  if (url && text.length < 25){
+    // Nur ein Link: im Hintergrund lesen lassen
+    const ref = S.db.collection("recipes").doc();
+    const ok = await write(()=>ref.set({status:"wird erstellt", sourceUrl:url, source:platformOf(url), caption:text, title:"", at:Date.now(), by:S.me||null}));
+    if (!ok) return;
+    S.cookTab="buch"; render();
+    const fired = await fireRecipeJob(ref.id);
+    toast(fired ? "Claude liest das Video. In ein paar Minuten ist das Rezept da." : "Gespeichert. Das Rezept wird beim nächsten Lauf um 6:37 Uhr erstellt. Schneller geht's mit der Beschreibung des Reels.");
+    return;
+  }
+  if (!S.sample){ toast("Die Rezept-Hilfe ist in dieser Ansicht nicht verfügbar."); return; }
   S.busy="recipe"; render();
   try{
     const res = await S.sample.json(
-`Du hilfst einem Paar in Österreich beim Einkaufen. Erstelle die Zutatenliste für: "${dish}".
-Ihr Vorrat: ${stockSummary() || "leer"}.
-Antworte NUR mit JSON in genau dieser Form:
-{"title":"<Gericht, kurz>","ingredients":[{"name":"<Zutat, österreichischer Begriff, z. B. Topfen, Paradeiser, Schlagobers>","qty":"<Menge>","category":"<eine aus: ${CATS.join(" | ")}>","basis":<true bei Salz, Pfeffer, Öl, Wasser, Gewürzen, sonst false>}]}
-Höchstens 18 Zutaten, auf Deutsch.`, {modelTier:"quick"});
+`Erstelle ein vollständiges Rezept für ein Paar in Österreich.
+${url?`Quelle: ${url} (${platformOf(url)}). Der folgende Text ist die Beschreibung/Caption dazu. Übernimm Zutaten und Mengen EXAKT so, wie sie dort stehen; fehlende Mengen ergänze sinnvoll und schreibe dann in notes "Mengen teilweise geschätzt".`:"Wenn der Text nur ein Gericht nennt, schreibe ein bewährtes klassisches Rezept dafür."}
+Text:
+"""${text.slice(0,6000)}"""
+Übersetze ins Deutsche, metrische Einheiten (cups in g/ml umrechnen).
+Antworte NUR mit JSON:
+{"title":"<Gericht>","servings":<Zahl>,"time":"<z. B. 30 Min.>","creator":"<Account/Kanal falls erkennbar, sonst leer>","ingredients":[${ING_SCHEMA}],"steps":["<Schritt>"],"notes":"<Tipps oder leer>","tags":["<z. B. vegetarisch, schnell>"]}`, {modelTier:"default"});
     if (!res || !Array.isArray(res.ingredients)) throw {code:"bad"};
-    S.recipe = {title: String(res.title||dish).slice(0,80), ingredients: res.ingredients.slice(0,18).map(g=>({name:String(g.name||"").slice(0,60), qty:String(g.qty||"").slice(0,30), category:g.category, basis:!!g.basis})).filter(g=>g.name)};
-  }catch(e){ aiError(e); }
+    const rec = {...cleanRecipe(res), status:"fertig", sourceUrl:url||"", source:url?platformOf(url):"claude", at:Date.now(), by:S.me||null};
+    const ref = S.db.collection("recipes").doc();
+    if (await write(()=>ref.set(rec), `„${rec.title}“ ist im Rezeptbuch`)){ S.openRecipe = ref.id; S.cookTab="buch"; }
+  }catch(e){ S.draft = input; aiError(e); }
   S.busy=null; render();
 }
-async function askIdeas(){
+async function askFromStock(){
   if (!S.sample || S.busy) return;
-  S.busy="ideas"; render();
-  const deals = activeDeals().map(d=>`${STORES[d.store]}: ${d.product}${d.price!=null&&d.price!==""?" "+fmtEur(d.price):d.discount?" −"+d.discount+"%":""} (${d.validFrom||"?"} bis ${d.validTo||"?"})`).join("\n");
+  const have = S.items.filter(i=>!needs(i)).map(i=>i.name+(i.qty?" ("+i.qty+")":""));
+  if (!have.length){ toast("Im Vorrat ist gerade nichts als „da“ markiert."); return; }
+  S.busy="stock"; render();
   try{
     const res = await S.sample.json(
-`Schlage einem Paar in Österreich 3 alltagstaugliche Abendessen für diese Woche vor, die möglichst die aktuellen Supermarkt-Aktionen nutzen und den Vorrat verwenden.
-Aktionen:
-${deals || "(keine eingetragen)"}
-Vorrat: ${stockSummary() || "leer"}.
+`Ein Paar in Österreich hat daheim: ${have.join(", ")}. Dazu immer vorhanden: Salz, Pfeffer, Öl, Wasser, gängige Gewürze.
+Schlage 4 alltagstaugliche Gerichte vor, die man NUR mit diesen Zutaten kochen kann (keine anderen Zutaten außer den Basics). Wenn wirklich nichts Vollständiges möglich ist, darf höchstens 1 kleine Zutat fehlen; nenne sie dann in "why".
 Antworte NUR mit JSON:
-{"dishes":[{"title":"<Gericht>","why":"<ein Satz: welche Aktion genutzt wird, bei welchem Händler>","ingredients":[{"name":"<Zutat, österreichischer Begriff>","qty":"<Menge für 2>","category":"<eine aus: ${CATS.join(" | ")}>","basis":<true bei Salz/Pfeffer/Öl/Gewürzen>}]}]}
-Höchstens 12 Zutaten pro Gericht, auf Deutsch.`, {modelTier:"default"});
+{"dishes":[{"title":"<Gericht>","why":"<ein Satz>","servings":2,"time":"<z. B. 20 Min.>","ingredients":[${ING_SCHEMA}],"steps":["<Schritt>"]}]}`, {modelTier:"default"});
     if (!res || !Array.isArray(res.dishes)) throw {code:"bad"};
-    const dishes = res.dishes.slice(0,3).map(d=>({title:String(d.title||"").slice(0,80), why:String(d.why||"").slice(0,200),
-      ingredients:(d.ingredients||[]).slice(0,12).map(g=>({name:String(g.name||"").slice(0,60), qty:String(g.qty||"").slice(0,30), category:g.category, basis:!!g.basis})).filter(g=>g.name)}));
-    const kw = (()=>{ const d=new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=t.getUTCDay()||7; t.setUTCDate(t.getUTCDate()+4-day); return Math.ceil(((t-new Date(Date.UTC(t.getUTCFullYear(),0,1)))/86400000+1)/7); })();
-    const doc = {week:`KW ${kw}`, at:new Date().toISOString(), dishes, by:S.me||null};
-    S.ideas = doc;
-    if (S.canWrite) await write(()=>S.db.doc("meta/ideas").set(doc));
+    const dishes = res.dishes.slice(0,4).map(d=>({...cleanRecipe(d), why:String(d.why||"").slice(0,200)}));
+    const doc = {at:new Date().toISOString(), dishes, by:S.me||null};
+    S.fromStock = doc;
+    if (S.canWrite) await write(()=>S.db.doc("meta/fromStock").set(doc));
   }catch(e){ aiError(e); }
   S.busy=null; render();
 }
+async function askIdeas(){ /* Wochenideen schreibt die Morgen-Aufgabe; hier nur Platzhalter für alte Knöpfe */ }
 
 document.addEventListener("click", e=>{
+  if (e.target.closest("a[href]") || e.target.closest("label.ing")) return;
   const b = e.target.closest("[data-act],[data-tab],[data-store],[data-shop]"); if(!b) return;
   if (b.dataset.tab){ S.tab=b.dataset.tab; S.editing=null; try{localStorage.setItem("vorrat-tab",S.tab)}catch(_){} render(); return; }
   if (b.dataset.store){ S.storeFilter=b.dataset.store; render(); return; }
@@ -665,8 +790,14 @@ document.addEventListener("click", e=>{
     case "delete": if(it){ S.editing=null; write(()=>itemRef(id).delete(), `${it.name} gelöscht`); } break;
     case "deldeal": write(()=>S.db.collection("deals").doc(id).delete()); break;
     case "apply": applyIngredients(b.dataset.key); break;
-    case "clear-recipe": S.recipe=null; render(); break;
-    case "ideas": askIdeas(); break;
+    case "cook-tab": S.cookTab=b.dataset.v; S.openRecipe=null; render(); break;
+    case "open-recipe": S.openRecipe=id; S.confirmDel=null; render(); window.scrollTo({top:0}); break;
+    case "close-recipe": S.openRecipe=null; S.confirmDel=null; render(); break;
+    case "serv": { const r=S.recipes.find(x=>x.id===id); if(r){ const cur=S.servings[id]||Number(r.servings)||2; S.servings[id]=Math.max(1,Math.min(20,cur+Number(b.dataset.d))); render(); } } break;
+    case "del-recipe": if(S.confirmDel===id){ S.confirmDel=null; S.openRecipe=null; write(()=>S.db.collection("recipes").doc(id).delete(), "Rezept gelöscht"); } else { S.confirmDel=id; render(); } break;
+    case "retry-recipe": { const r=S.recipes.find(x=>x.id===id); S.draft=(r?.sourceUrl||"")+"\n\n"; S.openRecipe=null; S.cookTab="buch"; if(r) write(()=>S.db.collection("recipes").doc(id).delete()); render(); setTimeout(()=>{ const t=$("r-input"); if(t){ t.focus(); t.setSelectionRange(t.value.length,t.value.length); } },50); } break;
+    case "from-stock": askFromStock(); break;
+    case "save-stock": { const d=S.fromStock?.dishes?.[Number(b.dataset.ix)]; if(d){ const {why, ...rest}=d; write(()=>S.db.collection("recipes").add({...rest, status:"fertig", source:"claude", sourceUrl:"", at:Date.now(), by:S.me||null}), `„${d.title}“ im Rezeptbuch gespeichert`); } } break;
     case "intro-ok": S.introSeen=true; try{localStorage.setItem("vorrat-intro","1")}catch(_){} render(); break;
     case "sugg-price": suggestPrice(id); break;
     case "delreq": write(()=>S.db.collection("requests").doc(id).delete()); break;
@@ -684,9 +815,7 @@ document.addEventListener("click", e=>{
 });
 document.addEventListener("change", e=>{
   const cb = e.target.closest("[data-ing]"); if(!cb) return;
-  const [key, ix] = cb.dataset.ing.split(":");
-  const src = key==="recipe" ? S.recipe?.ingredients : S.ideas?.dishes?.[Number(key.slice(4))]?.ingredients;
-  if (src && src[ix]) src[ix].checked = cb.checked;
+  S.checks[cb.dataset.ing] = cb.checked;
 });
 document.addEventListener("focusout", ()=>{ setTimeout(()=>{ const ae=document.activeElement; if(S.pendingRender && !(ae && ae.closest && (ae.closest("form") || ae.id==="v-search"))){ S.pendingRender=false; render(); } }, 0); });
 document.addEventListener("submit", e=>{
@@ -712,7 +841,7 @@ document.addEventListener("submit", e=>{
   } else if (f.dataset.form==="compare"){
     const q = v.query.trim(); if(q) askCompare(q);
   } else if (f.dataset.form==="recipe"){
-    const dish = v.dish.trim(); if(dish) askRecipe(dish);
+    const input = String(v.input||"").trim(); if(input) createRecipe(input);
   }
 });
 
@@ -728,8 +857,9 @@ function setSync(live, text){ $("dot").classList.toggle("live", live); $("syncTe
 render();
 (async()=>{
   const timer = setTimeout(()=>{ if(!S.live) setSync(false,"Liste gerade nicht erreichbar"); }, 10000);
-  const [db, user, sample] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("sample")]);
+  const [db, user, sample, mcp] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("sample"), claude.use("mcp")]);
   S.user = user; S.sample = sample;
+  if (mcp){ mcp.listTools("Claude Code Remote").then(r=>{ const sv=(r.servers||[])[0]; if(sv && (sv.tools||[]).some(t=>t.name==="fire_trigger")) S.mcp = mcp; }).catch(()=>{}); }
   if (!db){ clearTimeout(timer); setSync(false,"Bitte anmelden, um die gemeinsame Liste zu sehen"); return; }
   S.db = db;
   if (user){
@@ -760,7 +890,7 @@ render();
     S.items = snap.docs.map(d=>({id:d.id, ...d.data()}));
     if (S.editing && !S.items.some(i=>i.id===S.editing)) S.editing=null;
     const ae = document.activeElement;
-    if (ae && (ae.tagName==="INPUT" || ae.tagName==="SELECT") && (ae.closest("form") || ae.id==="v-search") && (ae.value || S.editing)) S.pendingRender = true; else render();
+    if (ae && (ae.tagName==="INPUT" || ae.tagName==="SELECT" || ae.tagName==="TEXTAREA") && (ae.closest("form") || ae.id==="v-search") && (ae.value || S.editing)) S.pendingRender = true; else render();
     resolveNames();
   }, ()=>{ clearTimeout(timer); setSync(false,"Verbindung verloren – Seite neu öffnen"); });
   db.collection("deals").onSnapshot(snap=>{
@@ -783,6 +913,15 @@ render();
     if(S.tab==="aktionen") softRender();
   }, ()=>{});
   db.doc("meta/status").onSnapshot(s=>{ S.meta = s.exists ? s.data() : null; if(S.tab==="aktionen") softRender(); }, ()=>{});
+  let firstRec = true;
+  db.collection("recipes").onSnapshot(snap=>{
+    if(!firstRec) for(const ch of snap.docChanges()){ const d=ch.doc.data()||{}; if(ch.type==="modified" && d.status==="fertig" && d.title) toast(`Rezept fertig: ${d.title}`); if(ch.type==="modified" && d.status==="fehler") toast("Ein Rezept-Link konnte nicht gelesen werden."); }
+    firstRec=false;
+    S.recipes = snap.docs.map(d=>({id:d.id, ...d.data()}));
+    if (S.openRecipe && !S.recipes.some(r=>r.id===S.openRecipe)) S.openRecipe=null;
+    if(S.tab==="kochen") softRender();
+  }, ()=>{});
+  db.doc("meta/fromStock").onSnapshot(s=>{ if(S.busy!=="stock"){ S.fromStock = s.exists ? s.data() : null; if(S.tab==="kochen") softRender(); } }, ()=>{});
   db.doc("meta/ideas").onSnapshot(s=>{ if(S.busy!=="ideas"){ S.ideas = s.exists ? JSON.parse(JSON.stringify(s.data())) : null; if(S.tab==="kochen") softRender(); } }, ()=>{});
 })();
 </script>
