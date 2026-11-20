@@ -71,6 +71,9 @@ input,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid
 .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:5px 12px;font:inherit;font-size:.82rem;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
 .deal-row.mine{background:color-mix(in srgb,var(--tag) 14%,var(--surface))}
+.soon{font-size:.72rem;font-weight:600;color:var(--accent)}
+.install{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.install ol{margin:8px 0 0;padding-left:20px;display:grid;gap:4px}
 .strike{text-decoration:line-through;opacity:.7;font-weight:500}
 .note{font-size:.8rem;color:var(--muted)}
 details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88rem}
@@ -103,6 +106,16 @@ details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88
   <section class="panel" id="p-liste"></section>
   <section class="panel" id="p-vorrat" hidden></section>
   <section class="panel" id="p-aktionen" hidden></section>
+
+  <details class="install" id="install">
+    <summary>Als App aufs iPhone legen</summary>
+    <ol>
+      <li>Link in <b>Safari</b> öffnen und bei claude.ai anmelden.</li>
+      <li>Unten auf <b>Teilen</b> tippen (Quadrat mit Pfeil).</li>
+      <li><b>„Zum Home-Bildschirm“</b> wählen, Namen „Vorrat“ eingeben, <b>Hinzufügen</b>.</li>
+    </ol>
+    <p class="note" style="margin:8px 0 0">Die Liste aktualisiert sich von selbst, sobald einer von euch etwas ändert oder neue Aktionen eingetragen werden.</p>
+  </details>
 </div>
 <div class="toast-box" id="toasts" aria-live="polite"></div>
 
@@ -118,7 +131,9 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const norm = s => String(s||"").toLowerCase().replace(/ß/g,"ss").normalize("NFD").replace(/[̀-ͯ]/g,"");
 const today = () => new Date().toISOString().slice(0,10);
 const fmtEur = n => (n==null||n==="") ? "" : Number(n).toLocaleString("de-AT",{style:"currency",currency:"EUR"});
-const fmtDate = d => d ? new Date(d+"T12:00").toLocaleDateString("de-AT",{day:"2-digit",month:"2-digit"}) : "";
+const fmtDate = d => d ? new Date(d+"T12:00").toLocaleDateString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit"}) : "";
+const fmtStamp = iso => { try{ return new Date(iso).toLocaleString("de-AT",{weekday:"short",day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"}); }catch(_){ return ""; } };
+S.meta = null;
 
 try{ const t = localStorage.getItem("vorrat-tab"); if(t) S.tab = t; }catch(e){}
 
@@ -129,9 +144,11 @@ function toast(msg){
 
 /* ---------- Aktionen ↔ Produkte abgleichen ---------- */
 function activeDeals(){ const t=today(); return S.deals.filter(d => !d.validTo || d.validTo >= t); }
+const isNow = d => !d.validFrom || d.validFrom <= today();
 function dealsFor(item){
   const terms = [item.name, ...(item.keywords||[])].map(norm).filter(t=>t.length>=3);
   return activeDeals().filter(d=>{
+    if ((d.categories||[]).includes(item.category)) return true;
     const text = norm(d.product+" "+(d.keywords||[]).join(" "));
     if (terms.some(t => text.includes(t))) return true;
     const iname = norm(item.name);
@@ -143,8 +160,11 @@ function needs(i){ return i.status==="knapp" || i.status==="leer"; }
 
 /* ---------- Rendering ---------- */
 function dealTag(d){
-  const was = d.was ? ` <span class="strike">${esc(fmtEur(d.was))}</span>` : (d.discount ? ` −${esc(d.discount)}%` : "");
-  return `<span class="store s-${esc(d.store)}">${esc(STORES[d.store]||d.store)}</span><span class="price">${esc(d.price!=null&&d.price!==""?fmtEur(d.price):"Aktion")}${was}</span>`;
+  const hasPrice = d.price!=null && d.price!=="";
+  const was = d.was ? ` <span class="strike">${esc(fmtEur(d.was))}</span>` : "";
+  const label = hasPrice ? fmtEur(d.price) + "" : (d.discount ? `${d.upTo?"bis ":""}−${d.discount} %` : "Aktion");
+  const soon = isNow(d) ? "" : `<span class="soon">ab ${esc(fmtDate(d.validFrom))}</span>`;
+  return `<span class="store s-${esc(d.store)}">${esc(STORES[d.store]||d.store)}</span><span class="price">${esc(label)}${was}</span>${soon}`;
 }
 function itemRow(i, mode){
   const ds = dealsFor(i);
@@ -220,9 +240,10 @@ function renderVorrat(){
 }
 function renderAktionen(){
   const t = today();
-  const act = activeDeals().filter(d => S.storeFilter==="alle" || d.store===S.storeFilter);
+  const all = activeDeals().filter(d => S.storeFilter==="alle" || d.store===S.storeFilter);
   const old = S.deals.filter(d => d.validTo && d.validTo < t);
-  act.sort((a,b)=> (itemsFor(b).length?1:0)-(itemsFor(a).length?1:0) || (a.validTo||"").localeCompare(b.validTo||""));
+  const sorter = (a,b)=> (itemsFor(b).length?1:0)-(itemsFor(a).length?1:0) || (a.validFrom||"").localeCompare(b.validFrom||"") || (a.validTo||"").localeCompare(b.validTo||"");
+  const act = all.filter(isNow).sort(sorter), soon = all.filter(d=>!isNow(d)).sort(sorter);
   const row = d => {
     const mine = itemsFor(d);
     const range = d.validFrom||d.validTo ? `${fmtDate(d.validFrom)}–${fmtDate(d.validTo)}` : "";
@@ -231,6 +252,7 @@ function renderAktionen(){
       <div class="main">
         <div class="name">${esc(d.product)}</div>
         <div class="meta">${dealTag(d)}${d.unit?` <span>${esc(d.unit)}</span>`:""}${range?` · ${upcoming?"ab ":""}${range}`:""}${d.condition?` · ${esc(d.condition)}`:""}</div>
+        ${d.categories&&d.categories.length?`<div class="meta">Gilt für: ${esc(d.categories.join(", "))}</div>`:""}
         ${mine.length?`<div class="meta"><b>Passt zu: ${mine.map(i=>esc(i.name)).join(", ")}</b></div>`:""}
       </div>
       ${S.canWrite?`<button class="icon-btn" data-act="deldeal" data-id="${esc(d.id)}" aria-label="Aktion entfernen">×</button>`:""}
@@ -238,7 +260,10 @@ function renderAktionen(){
   };
   $("p-aktionen").innerHTML = `
     <div class="filters">${["alle",...Object.keys(STORES)].map(s=>`<button class="chip" data-store="${s}" aria-pressed="${S.storeFilter===s}">${s==="alle"?"Alle":STORES[s]}</button>`).join("")}</div>
-    ${act.length?`<div class="rows">${act.map(row).join("")}</div>`:`<div class="empty">${S.live?"Keine laufenden Aktionen eingetragen. Tragt unten eine aus dem Flugblatt ein, oder lasst Claude die neuen Aktionen eintragen.":"Lade Aktionen …"}</div>`}
+    ${updatedLine()}
+    <div class="group"><h2><span>Jetzt gültig</span><span>${act.length}</span></h2>
+    ${act.length?`<div class="rows">${act.map(row).join("")}</div>`:`<div class="empty">${S.live?"Gerade keine laufenden Aktionen eingetragen.":"Lade Aktionen …"}</div>`}</div>
+    ${soon.length?`<div class="group"><h2><span>Demnächst</span><span>${soon.length}</span></h2><div class="rows">${soon.map(row).join("")}</div></div>`:""}
     <details><summary>Aktion selbst eintragen</summary>
       <form class="add" data-form="deal" style="margin-top:8px">
         <input id="d-product" name="product" placeholder="Produkt, z. B. Schärdinger Butter 250 g" required aria-label="Produkt">
@@ -255,12 +280,20 @@ function renderAktionen(){
     </details>
     <p class="note" style="margin:0">Preise ohne Gewähr. Vor dem Einkauf bitte im Flugblatt oder in der App des Händlers prüfen.${old.length?` ${old.length} abgelaufene Aktion(en) ausgeblendet.`:""}</p>`;
 }
+function updatedLine(){
+  const m = S.meta;
+  if (!m || !m.lastRun) return `<p class="note" style="margin:0">Aktionen werden automatisch zweimal pro Woche aktualisiert.</p>`;
+  return `<p class="note" style="margin:0">Automatisch aktualisiert: ${esc(fmtStamp(m.lastRun))}${m.nextRun?` · nächste Prüfung ${esc(fmtStamp(m.nextRun))}`:""}${m.summary?`<br>${esc(m.summary)}`:""}</p>`;
+}
 function renderAlert(){
-  const hits = S.items.filter(i=>dealsFor(i).length);
+  const hits = S.items.filter(i=>dealsFor(i).some(isNow));
+  const soon = S.items.filter(i=>!hits.includes(i) && dealsFor(i).length);
   const el = $("alert");
-  if (!hits.length){ el.hidden = true; return; }
-  const names = hits.slice(0,4).map(i=>i.name);
-  el.innerHTML = `<span><b>${hits.length} eurer Produkte ${hits.length===1?"ist":"sind"} gerade in Aktion:</b> ${esc(names.join(", "))}${hits.length>4?" …":""}</span><button data-act="goto-aktionen">Ansehen</button>`;
+  if (!hits.length && !soon.length){ el.hidden = true; return; }
+  const list = arr => esc(arr.slice(0,4).map(i=>i.name).join(", ")) + (arr.length>4?" …":"");
+  const now = hits.length ? `<b>${hits.length} eurer Produkte ${hits.length===1?"ist":"sind"} gerade in Aktion:</b> ${list(hits)}` : "";
+  const later = soon.length ? `${now?"<br>":""}<b>Bald in Aktion:</b> ${list(soon)}` : "";
+  el.innerHTML = `<span>${now}${later}</span><button data-act="goto-aktionen">Ansehen</button>`;
   el.hidden = false;
 }
 function render(){
@@ -274,6 +307,9 @@ function render(){
   }
   ({liste:renderListe, vorrat:renderVorrat, aktionen:renderAktionen})[S.tab]();
 }
+/* Datum rollt weiter: abgelaufene Aktionen verschwinden, kommende rücken nach "Jetzt gültig" */
+let lastDay = today();
+setInterval(()=>{ if (today()!==lastDay){ lastDay=today(); if(!S.editing) render(); } }, 60000);
 
 /* ---------- Schreiben ---------- */
 async function write(fn, okMsg){
@@ -372,5 +408,6 @@ render();
     S.seenDeals = new Set(S.deals.map(d=>d.id));
     render();
   }, ()=>{});
+  db.doc("meta/status").onSnapshot(s=>{ S.meta = s.exists ? s.data() : null; if(S.tab==="aktionen") render(); }, ()=>{});
 })();
 </script>
